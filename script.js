@@ -197,3 +197,2048 @@ const CARS = {
   
   buildMods();
   simulate();
+
+  /* =====================================================
+   CÁLCULO PRINCIPAL DA PREPARAÇÃO
+   ===================================================== */
+
+
+function calculatePreparation(){
+
+
+const original =
+cars[state.vehicle];
+
+
+
+let prepared = {
+
+
+hp: original.hp,
+
+torque: original.torque,
+
+aceleracao: original.aceleracao,
+
+vmax: original.vmax,
+
+consumo: original.consumo,
+
+confiabilidade: original.confiabilidade
+
+};
+
+
+
+
+
+state.selectedMods.forEach(id=>{
+
+
+const mod =
+modifications[id];
+
+
+
+prepared.hp += mod.hp;
+
+prepared.torque += mod.torque;
+
+prepared.aceleracao += mod.aceleracao;
+
+prepared.vmax += mod.vmax;
+
+prepared.consumo += mod.consumo;
+
+prepared.confiabilidade += mod.confiabilidade;
+
+
+
+});
+
+
+
+
+
+
+/*
+Limitações acadêmicas:
+
+Os valores são mantidos dentro de limites
+realistas para evitar resultados impossíveis.
+*/
+
+
+prepared.hp =
+Math.max(prepared.hp,0);
+
+
+
+prepared.torque =
+Math.max(prepared.torque,0);
+
+
+
+prepared.aceleracao =
+Math.max(prepared.aceleracao,2);
+
+
+
+prepared.vmax =
+Math.max(prepared.vmax,50);
+
+
+
+prepared.consumo =
+Math.max(prepared.consumo,3);
+
+
+
+prepared.confiabilidade =
+Math.min(
+Math.max(prepared.confiabilidade,0),
+100
+);
+
+
+
+
+
+state.prepared = prepared;
+
+
+
+renderResults();
+
+
+calculateBudget();
+
+
+calculateSafety();
+
+
+calculateScores();
+
+
+generateRecommendations();
+
+
+renderCharts();
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   CÁLCULO FINANCEIRO
+   ===================================================== */
+
+
+function calculateBudget(){
+
+
+let total = 0;
+
+
+
+state.selectedMods.forEach(id=>{
+
+total += modifications[id].preco;
+
+});
+
+
+
+let budget =
+Number(state.budget);
+
+
+
+let remaining =
+budget-total;
+
+
+
+let percentage =
+budget>0 ?
+(total/budget)*100 :
+0;
+
+
+
+
+
+document.getElementById(
+"financeBudget"
+).textContent =
+formatMoney(budget);
+
+
+
+document.getElementById(
+"financeCost"
+).textContent =
+formatMoney(total);
+
+
+
+document.getElementById(
+"financeRemaining"
+).textContent =
+formatMoney(remaining);
+
+
+
+
+
+
+const progress =
+document.getElementById(
+"budgetProgress"
+);
+
+
+
+progress.style.width =
+Math.min(
+percentage,
+100
+)+"%";
+
+
+
+progress.classList.remove(
+"over"
+);
+
+
+
+const status =
+document.getElementById(
+"budgetStatus"
+);
+
+
+
+if(total > budget && budget>0){
+
+
+progress.classList.add(
+"over"
+);
+
+
+
+status.innerHTML =
+`
+⚠ Orçamento excedido em
+${formatMoney(total-budget)}
+`;
+
+
+
+showToast(
+"Orçamento excedido.",
+"warning"
+);
+
+
+
+}else if(total<=budget && budget>0){
+
+
+status.innerHTML =
+`
+✓ Preparação dentro do orçamento
+<br>
+Utilizado:
+${percentage.toFixed(0)}%
+`;
+
+
+
+}else{
+
+
+status.textContent =
+"Informe um orçamento válido.";
+
+
+}
+
+
+
+
+renderCostTable();
+
+
+}
+
+
+
+
+
+
+
+/* =====================================================
+   TABELA DE CUSTOS
+   ===================================================== */
+
+
+function renderCostTable(){
+
+
+const table =
+document.getElementById(
+"costTable"
+);
+
+
+
+table.innerHTML="";
+
+
+
+let total=0;
+
+
+
+state.selectedMods.forEach(id=>{
+
+
+const mod =
+modifications[id];
+
+
+total+=mod.preco;
+
+
+
+table.innerHTML += `
+
+
+<tr>
+
+<td>
+${mod.nome}
+</td>
+
+
+<td>
+${formatMoney(mod.preco)}
+</td>
+
+
+</tr>
+
+
+`;
+
+
+
+});
+
+
+
+if(state.selectedMods.length===0){
+
+
+table.innerHTML =
+`
+
+<tr>
+
+<td colspan="2">
+Nenhuma modificação selecionada.
+</td>
+
+</tr>
+
+`;
+
+
+
+}
+
+
+
+table.innerHTML += `
+
+
+<tr>
+
+<th>
+Total
+</th>
+
+
+<th>
+${formatMoney(total)}
+</th>
+
+
+</tr>
+
+
+`;
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   RESULTADOS COMPARATIVOS
+   ===================================================== */
+
+
+function renderResults(){
+
+
+const original =
+cars[state.vehicle];
+
+
+const prepared =
+state.prepared;
+
+
+
+const rows = [
+
+
+[
+"Potência",
+original.hp+" HP",
+prepared.hp.toFixed(0)+" HP",
+difference(prepared.hp-original.hp)
+],
+
+
+
+[
+"Torque",
+original.torque+" kgfm",
+prepared.torque.toFixed(1)+" kgfm",
+difference(prepared.torque-original.torque)
+],
+
+
+
+[
+"0-100 km/h",
+original.aceleracao+"s",
+prepared.aceleracao.toFixed(1)+"s",
+difference(
+original.aceleracao-prepared.aceleracao
+)+"s"
+],
+
+
+
+[
+"Velocidade máxima",
+original.vmax+" km/h",
+prepared.vmax.toFixed(0)+" km/h",
+difference(
+prepared.vmax-original.vmax
+)
+],
+
+
+
+[
+"Consumo",
+original.consumo+" km/l",
+prepared.consumo.toFixed(1)+" km/l",
+difference(
+prepared.consumo-original.consumo
+)
+],
+
+
+
+[
+"Confiabilidade",
+original.confiabilidade+"%",
+prepared.confiabilidade.toFixed(0)+"%",
+difference(
+prepared.confiabilidade-original.confiabilidade
+)
+]
+
+
+];
+
+
+
+
+const table =
+document.getElementById(
+"comparisonTable"
+);
+
+
+
+table.innerHTML="";
+
+
+
+rows.forEach(row=>{
+
+
+let color="neutral";
+
+
+
+if(row[3].includes("+")){
+
+color="good";
+
+}
+
+
+if(row[3].includes("-")){
+
+color="bad";
+
+}
+
+
+
+
+table.innerHTML += `
+
+
+<tr>
+
+<td>${row[0]}</td>
+
+<td>${row[1]}</td>
+
+<td>${row[2]}</td>
+
+<td class="${color}">
+${row[3]}
+</td>
+
+
+</tr>
+
+
+`;
+
+
+
+});
+
+
+
+}
+
+
+
+
+
+function difference(value){
+
+
+if(value>0)
+
+return "+"+value.toFixed(1);
+
+
+
+if(value<0)
+
+return value.toFixed(1);
+
+
+
+return "0";
+
+
+}
+
+
+
+
+
+
+
+
+/* =====================================================
+   SISTEMA DE SEGURANÇA
+   ===================================================== */
+
+
+function calculateSafety(){
+
+
+let risk=0;
+
+
+
+state.selectedMods.forEach(id=>{
+
+risk += modifications[id].risco;
+
+});
+
+
+
+let level="Baixo";
+
+let css="risk-low";
+
+
+
+if(risk>=4){
+
+level="Alto";
+
+css="risk-high";
+
+}
+
+else if(risk>=2){
+
+level="Médio";
+
+css="risk-medium";
+
+}
+
+
+
+
+
+document.getElementById(
+"riskLevel"
+).textContent =
+level;
+
+
+
+const indicator =
+document.getElementById(
+"riskIndicator"
+);
+
+
+
+indicator.className =
+"risk-indicator "+css;
+
+
+
+
+
+document.getElementById(
+"securityText"
+).textContent =
+
+
+level==="Baixo"
+
+?
+
+"Preparação com alterações de menor impacto."
+
+:
+
+level==="Médio"
+
+?
+
+"Alterações que exigem maior atenção em componentes mecânicos."
+
+:
+
+"Alterações significativas no conjunto mecânico. Recomenda-se avaliação profissional."
+
+;
+
+
+
+
+let legal="";
+
+
+if(state.selectedMods.includes("turbo"))
+
+legal +=
+"Alterações no sistema de motorização podem exigir regularização. ";
+
+
+if(state.selectedMods.includes("remap"))
+
+legal +=
+"Alterações eletrônicas podem afetar emissões, garantia e funcionamento do veículo. ";
+
+
+
+if(!legal)
+
+legal =
+"Nenhum aviso específico identificado.";
+
+
+
+document.getElementById(
+"legalizationText"
+).textContent =
+legal;
+
+
+
+}
+
+
+/* =====================================================
+   SISTEMA DE PONTUAÇÃO
+   ===================================================== */
+
+
+function calculateScores(){
+
+const original =
+cars[state.vehicle];
+
+const prepared =
+state.prepared;
+
+
+
+/*
+Desempenho:
+considera ganho de potência,
+torque, aceleração e velocidade.
+*/
+
+
+let performance =
+0;
+
+
+performance +=
+((prepared.hp-original.hp)/10);
+
+
+performance +=
+((prepared.torque-original.torque)/2);
+
+
+performance +=
+((original.aceleracao-prepared.aceleracao)*2);
+
+
+performance +=
+((prepared.vmax-original.vmax)/10);
+
+
+
+performance =
+clamp(performance,0,10);
+
+
+
+
+
+
+/*
+Segurança:
+considera confiabilidade,
+presença de freios,
+suspensão e risco.
+*/
+
+
+let safety =
+prepared.confiabilidade/10;
+
+
+
+if(state.selectedMods.includes("freios"))
+
+safety+=1;
+
+
+
+if(state.selectedMods.includes("suspensao"))
+
+safety+=1;
+
+
+
+state.selectedMods.forEach(id=>{
+
+safety -= modifications[id].risco*.5;
+
+});
+
+
+
+safety =
+clamp(safety,0,10);
+
+
+
+
+
+
+
+/*
+Economia:
+considera consumo e valor gasto.
+*/
+
+
+let economy =
+prepared.consumo;
+
+
+
+if(state.selectedMods.length)
+
+economy -= state.selectedMods.length;
+
+
+
+economy =
+clamp(economy/2,0,10);
+
+
+
+
+
+
+
+/*
+Custo-benefício:
+considera ganhos,
+quantidade de peças
+e relação com orçamento.
+*/
+
+
+let total =
+getTotalCost();
+
+
+
+let value =
+performance*0.6;
+
+
+
+if(state.budget>0){
+
+value +=
+(total<=state.budget ? 3 : 1);
+
+}
+
+
+
+value -=
+state.selectedMods.length*.3;
+
+
+
+value =
+clamp(value,0,10);
+
+
+
+
+
+
+document.getElementById(
+"performanceScore"
+).textContent =
+performance.toFixed(1);
+
+
+
+document.getElementById(
+"securityScore"
+).textContent =
+safety.toFixed(1);
+
+
+
+document.getElementById(
+"economyScore"
+).textContent =
+economy.toFixed(1);
+
+
+
+document.getElementById(
+"valueScore"
+).textContent =
+value.toFixed(1);
+
+
+
+}
+
+
+
+
+
+function clamp(value,min,max){
+
+return Math.min(
+Math.max(value,min),
+max
+);
+
+}
+
+
+
+
+
+
+
+/* =====================================================
+   RECOMENDAÇÕES AUTOMÁTICAS
+   ===================================================== */
+
+
+function generateRecommendations(){
+
+
+let messages=[];
+
+
+
+if(state.selectedMods.includes("turbo")){
+
+
+messages.push(
+"Turbo aumenta potência e torque. Verifique freios, suspensão, arrefecimento e componentes relacionados."
+);
+
+
+}
+
+
+
+if(state.selectedMods.includes("supercharger")){
+
+
+messages.push(
+"Considere avaliar o sistema de arrefecimento e a capacidade dos componentes do motor."
+);
+
+
+}
+
+
+
+if(state.selectedMods.includes("remap")){
+
+
+messages.push(
+"O remapeamento pode alterar o funcionamento do motor. Consulte profissionais especializados."
+);
+
+
+}
+
+
+
+if(state.prepared.hp >
+cars[state.vehicle].hp*1.3){
+
+
+messages.push(
+"O aumento de potência é significativo. Avalie reforços mecânicos e segurança."
+);
+
+
+}
+
+
+
+if(
+!state.selectedMods.includes("freios")
+&&
+state.selectedMods.length>0
+){
+
+
+messages.push(
+"Considere adicionar upgrade de freios para acompanhar alterações de desempenho."
+);
+
+
+}
+
+
+
+
+if(
+!state.selectedMods.includes("suspensao")
+&&
+state.selectedMods.length>0
+){
+
+
+messages.push(
+"Verifique a suspensão para manter estabilidade e controle."
+);
+
+
+}
+
+
+
+
+if(
+getTotalCost()>state.budget
+&&
+state.budget>0
+){
+
+
+messages.push(
+"Sua configuração ultrapassa o orçamento informado."
+);
+
+
+}
+
+
+
+
+if(messages.length===0){
+
+
+messages.push(
+"Selecione modificações para receber recomendações personalizadas."
+);
+
+
+}
+
+
+
+
+document.getElementById(
+"recommendations"
+).innerHTML =
+messages
+.map(item=>`<p>• ${item}</p>`)
+.join("");
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   PREPARAÇÃO AUTOMÁTICA
+   ===================================================== */
+
+
+function generateAutomaticPreparation(){
+
+
+state.selectedMods=[];
+
+
+
+document
+.querySelectorAll(".modification-card")
+.forEach(card=>{
+
+card.classList.remove("selected");
+
+card.querySelector(".selected-icon")
+.textContent="";
+
+});
+
+
+
+
+
+let available =
+Object.keys(modifications);
+
+
+
+let sorted=[];
+
+
+
+
+if(state.goal==="economia"){
+
+
+sorted=[
+"remap",
+"freios",
+"suspensao"
+];
+
+
+}
+
+
+
+if(state.goal==="desempenho"){
+
+
+sorted=[
+"remap",
+"turbo",
+"freios"
+];
+
+
+}
+
+
+
+if(state.goal==="esportivo"){
+
+
+sorted=[
+"turbo",
+"freios",
+"suspensao"
+];
+
+
+}
+
+
+
+
+
+
+let total=0;
+
+
+
+sorted.forEach(id=>{
+
+
+let price =
+modifications[id].preco;
+
+
+
+if(
+total+price<=state.budget
+||
+state.budget===0
+){
+
+
+state.selectedMods.push(id);
+
+total+=price;
+
+
+}
+
+
+
+});
+
+
+
+
+
+
+document
+.querySelectorAll(".modification-card")
+.forEach(card=>{
+
+
+if(
+state.selectedMods.includes(card.dataset.id)
+){
+
+
+card.classList.add("selected");
+
+
+card.querySelector(".selected-icon")
+.textContent=
+"✓ Selecionado";
+
+
+}
+
+
+});
+
+
+
+
+
+
+calculatePreparation();
+
+
+
+document.getElementById(
+"automaticResult"
+).innerHTML = `
+
+
+<div class="summary-card">
+
+<h3>
+Preparação automática gerada!
+</h3>
+
+
+<p>
+Objetivo:
+${state.goal}
+</p>
+
+
+<p>
+Orçamento:
+${formatMoney(state.budget)}
+</p>
+
+
+<p>
+Modificações:
+</p>
+
+
+${state.selectedMods
+.map(id=>"✓ "+modifications[id].nome)
+.join("<br>")}
+
+
+</div>
+
+
+`;
+
+
+
+showToast(
+"Preparação automática gerada com sucesso."
+);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   GRÁFICOS
+   ===================================================== */
+
+
+function renderCharts(){
+
+
+const original =
+cars[state.vehicle];
+
+
+const prepared =
+state.prepared;
+
+
+
+createChart(
+"powerChart",
+"Potência HP",
+[
+original.hp,
+prepared.hp
+]
+);
+
+
+
+createChart(
+"torqueChart",
+"Torque",
+[
+original.torque,
+prepared.torque
+]
+);
+
+
+
+createChart(
+"performanceChart",
+"Desempenho",
+[
+original.aceleracao,
+prepared.aceleracao,
+original.vmax,
+prepared.vmax
+]
+);
+
+
+
+createChart(
+"scoreChart",
+"Avaliação",
+[
+Number(document.getElementById("performanceScore").textContent),
+Number(document.getElementById("securityScore").textContent),
+Number(document.getElementById("economyScore").textContent),
+Number(document.getElementById("valueScore").textContent)
+]
+);
+
+
+
+}
+
+
+
+
+
+function createChart(id,label,data){
+
+
+if(state.charts[id])
+
+state.charts[id].destroy();
+
+
+
+state.charts[id]=
+new Chart(
+document.getElementById(id),
+{
+
+type:"bar",
+
+data:{
+
+labels:
+data.length===4
+?
+["Original","Preparado","Extra1","Extra2"]
+:
+["Original","Preparado"],
+
+
+datasets:[{
+
+label,
+
+data,
+
+backgroundColor:[
+"#38bdf8",
+"#22c55e",
+"#facc15",
+"#ef4444"
+]
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+
+plugins:{
+
+legend:{
+display:true
+}
+
+}
+
+}
+
+});
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   PDF COM jsPDF
+   ===================================================== */
+
+
+function generatePDF(){
+
+
+const {jsPDF}=window.jspdf;
+
+
+
+const pdf =
+new jsPDF();
+
+
+
+const vehicle =
+cars[state.vehicle];
+
+
+
+let y=20;
+
+
+
+function add(text){
+
+pdf.text(
+String(text),
+20,
+y
+);
+
+y+=10;
+
+
+if(y>280){
+
+pdf.addPage();
+
+y=20;
+
+}
+
+}
+
+
+
+
+add(
+"SIMULADOR DE PREPARAÇÃO AUTOMOTIVA"
+);
+
+
+add(
+"Aluno: Arthur Moreira Ribeiro"
+);
+
+
+add(
+"Turma: 3º DS"
+);
+
+
+add(
+"Data: "+new Date().toLocaleDateString()
+);
+
+
+add(
+"Veículo: "+vehicle.nome
+);
+
+
+add(
+"Objetivo: "+state.goal
+);
+
+
+
+pdf.addPage();
+
+y=20;
+
+
+add("DADOS DO VEÍCULO");
+
+add("Potência: "+vehicle.hp+" HP");
+
+add("Torque: "+vehicle.torque);
+
+add("0-100: "+vehicle.aceleracao+"s");
+
+add("Velocidade máxima: "+vehicle.vmax);
+
+add("Consumo: "+vehicle.consumo);
+
+add("Confiabilidade: "+vehicle.confiabilidade);
+
+
+
+
+pdf.addPage();
+
+y=20;
+
+
+add("MODIFICAÇÕES");
+
+
+
+if(state.selectedMods.length===0){
+
+add("Nenhuma modificação selecionada.");
+
+}else{
+
+
+state.selectedMods.forEach(id=>{
+
+let mod=
+modifications[id];
+
+add(
+`${mod.nome} - ${formatMoney(mod.preco)}`
+);
+
+
+});
+
+
+}
+
+
+
+pdf.addPage();
+
+y=20;
+
+
+add("COMPARAÇÃO");
+
+add(
+`Potência:
+${vehicle.hp}
+-> 
+${state.prepared.hp}`
+);
+
+
+add(
+`Torque:
+${vehicle.torque}
+->
+${state.prepared.torque}`
+);
+
+
+add(
+`0-100:
+${vehicle.aceleracao}
+->
+${state.prepared.aceleracao}`
+);
+
+
+
+pdf.addPage();
+
+y=20;
+
+
+add("SEGURANÇA");
+
+add(
+"Nível de risco: "+
+document.getElementById("riskLevel").textContent
+);
+
+
+
+add(
+"Recomendações:"
+);
+
+
+
+document
+.querySelectorAll("#recommendations p")
+.forEach(p=>{
+
+add(p.textContent);
+
+});
+
+
+
+
+pdf.addPage();
+
+y=20;
+
+
+add("PONTUAÇÃO");
+
+add(
+"Desempenho: "+
+performanceScore.textContent
+);
+
+add(
+"Segurança: "+
+securityScore.textContent
+);
+
+add(
+"Economia: "+
+economyScore.textContent
+);
+
+add(
+"Custo-benefício: "+
+valueScore.textContent
+);
+
+
+
+pdf.addPage();
+
+y=20;
+
+
+add(
+"Este relatório foi gerado para fins educacionais."
+);
+
+
+add(
+"Os valores são estimativas."
+);
+
+
+
+let filename =
+vehicle.nome
+.toLowerCase()
+.replace(/[^a-z0-9]+/g,"-");
+
+
+
+pdf.save(
+"relatorio-preparacao-"+filename+".pdf"
+);
+
+
+
+showToast(
+"Relatório gerado com sucesso."
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   IMPRESSÃO
+   ===================================================== */
+
+
+function printReport(){
+
+window.print();
+
+}
+
+
+
+
+
+
+
+
+/* =====================================================
+   RESET
+   ===================================================== */
+
+
+function resetSimulation(){
+
+
+if(
+!confirm(
+"Tem certeza que deseja apagar a configuração atual?"
+)
+
+)
+
+return;
+
+
+
+state={
+
+vehicle:"gti",
+
+goal:"economia",
+
+budget:0,
+
+selectedMods:[],
+
+prepared:null,
+
+charts:{}
+
+};
+
+
+
+document.getElementById(
+"budget"
+).value="";
+
+
+
+document.getElementById(
+"vehicleSelect"
+).value="gti";
+
+
+
+document.querySelectorAll(
+".modification-card"
+)
+.forEach(card=>{
+
+card.classList.remove("selected");
+
+card.querySelector(".selected-icon")
+.textContent="";
+
+});
+
+
+
+renderVehicle();
+
+calculatePreparation();
+
+
+
+showToast(
+"Simulação resetada."
+);
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   UTILIDADES
+   ===================================================== */
+
+
+function getTotalCost(){
+
+
+return state.selectedMods.reduce(
+(total,id)=>
+total+modifications[id].preco,
+0
+);
+
+
+}
+
+
+
+function formatMoney(value){
+
+
+return Number(value)
+.toLocaleString(
+"pt-BR",
+{
+style:"currency",
+currency:"BRL"
+}
+);
+
+
+}
+
+
+
+
+
+function showToast(message){
+
+
+const container =
+document.getElementById(
+"toastContainer"
+);
+
+
+
+const toast =
+document.createElement("div");
+
+
+toast.className="toast";
+
+toast.textContent=message;
+
+
+
+container.appendChild(toast);
+
+
+
+setTimeout(()=>{
+
+toast.remove();
+
+},3000);
+
+
+
+}
+
+
+
+
+
+
+
+
+
+/* =====================================================
+   EVENTOS
+   ===================================================== */
+
+
+function setupEvents(){
+
+
+
+document
+.getElementById("vehicleSelect")
+.addEventListener(
+"change",
+e=>{
+
+state.vehicle=e.target.value;
+
+renderVehicle();
+
+calculatePreparation();
+
+}
+
+);
+
+
+
+
+document
+.getElementById("budget")
+.addEventListener(
+"input",
+e=>{
+
+
+let value=
+Number(e.target.value);
+
+
+
+if(value<0){
+
+e.target.value=0;
+
+showToast(
+"Valor inválido."
+);
+
+}
+
+
+
+state.budget=value;
+
+calculatePreparation();
+
+
+
+}
+
+);
+
+
+
+
+
+document
+.getElementById("goal")
+.addEventListener(
+"change",
+e=>{
+
+
+state.goal=e.target.value;
+
+
+calculatePreparation();
+
+
+}
+
+);
+
+
+
+
+
+document
+.getElementById("automaticButton")
+.addEventListener(
+"click",
+generateAutomaticPreparation
+);
+
+
+
+
+
+document
+.getElementById("pdfButton")
+.addEventListener(
+"click",
+generatePDF
+);
+
+
+
+
+
+document
+.getElementById("printButton")
+.addEventListener(
+"click",
+printReport
+);
+
+
+
+
+
+document
+.getElementById("resetButton")
+.addEventListener(
+"click",
+resetSimulation
+);
+
+
+
+
+
+document
+.getElementById("startSimulation")
+.addEventListener(
+"click",
+()=>{
+
+document
+.getElementById("veiculo")
+.scrollIntoView({
+behavior:"smooth"
+});
+
+}
+
+);
+
+
+
+
+
+document
+.getElementById("menuToggle")
+.addEventListener(
+"click",
+()=>{
+
+document
+.getElementById("mainMenu")
+.classList.toggle("active");
+
+
+}
+
+);
+
+
+
+}
+
+
+
+
+
+
+
+document.addEventListener(
+"DOMContentLoaded",
+initializeApp
+);
