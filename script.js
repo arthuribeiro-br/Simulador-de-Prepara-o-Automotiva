@@ -1,5520 +1,995 @@
-/* ============================================================
-   SIMULADOR DE PREPARAÇÃO AUTOMOTIVA
-   Projeto acadêmico - 3º DS
-   Aluno: Arthur Moreira Ribeiro
-   ============================================================
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AutoForge — Simulador de Preparação Automotiva</title>
+    <!-- Google Fonts & Tailwind CDN -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
-   TECNOLOGIAS:
-   - JavaScript puro
-   - Chart.js
-   - jsPDF
-
-   IMPORTANTE:
-   Os valores de desempenho são estimativas acadêmicas.
-   Não representam garantia de desempenho real.
-============================================================ */
-
-/* ============================================================
-   1. DADOS DOS VEÍCULOS
-============================================================ */
-
-const cars = {
-    gti: {
-        nome: "Volkswagen Golf GTI",
-        hp: 230,
-        torque: 35,
-        aceleracao: 6.4,
-        vmax: 240,
-        consumo: 11,
-        confiabilidade: 92
-    },
-
-    civicSi: {
-        nome: "Honda Civic Si",
-        hp: 208,
-        torque: 26.5,
-        aceleracao: 7.2,
-        vmax: 230,
-        consumo: 10.5,
-        confiabilidade: 94
-    },
-
-    gol: {
-        nome: "Volkswagen Gol",
-        hp: 104,
-        torque: 15.6,
-        aceleracao: 10.8,
-        vmax: 180,
-        consumo: 12.5,
-        confiabilidade: 88
-    },
-
-    bmw320i: {
-        nome: "BMW 320i",
-        hp: 184,
-        torque: 30.6,
-        aceleracao: 7.3,
-        vmax: 235,
-        consumo: 11.2,
-        confiabilidade: 87
-    },
-
-    c200: {
-        nome: "Mercedes-Benz C200",
-        hp: 204,
-        torque: 32.6,
-        aceleracao: 7.3,
-        vmax: 246,
-        consumo: 10.8,
-        confiabilidade: 89
-    },
-
-    chevette: {
-        nome: "Chevrolet Chevette",
-        hp: 82,
-        torque: 12.8,
-        aceleracao: 14.5,
-        vmax: 160,
-        consumo: 10,
-        confiabilidade: 84
-    },
-
-    lancerEvolution: {
-        nome: "Mitsubishi Lancer Evolution",
-        hp: 291,
-        torque: 41.5,
-        aceleracao: 5.4,
-        vmax: 250,
-        consumo: 8.5,
-        confiabilidade: 86
-    },
-
-    audiA3: {
-        nome: "Audi A3",
-        hp: 150,
-        torque: 25.5,
-        aceleracao: 8.4,
-        vmax: 215,
-        consumo: 12,
-        confiabilidade: 88
-    }
-};
-
-
-/* ============================================================
-   2. DADOS DAS MODIFICAÇÕES
-============================================================ */
-
-const modifications = {
-
-    turbo: {
-        id: "turbo",
-        nome: "Turbo",
-        icone: "⚡",
-        descricao:
-            "Sistema de sobrealimentação destinado ao aumento significativo da potência e do torque.",
-
-        preco: 8000,
-
-        hp: 60,
-        torque: 10,
-
-        aceleracaoPercentual: -0.16,
-        vmax: 20,
-
-        consumo: -1.8,
-        confiabilidade: -10,
-
-        risco: 3,
-
-        beneficioSeguranca: 0,
-        impactoDesempenho: 9,
-
-        objetivoPeso: {
-            economia: 1,
-            desempenho: 5,
-            esportivo: 5
+        :root {
+          --bg-primary: #090909;
+          --bg-card: #151515;
+          --accent-orange: #FF6B00;
+          --border-dark: #222222;
         }
-    },
 
-    supercharger: {
-        id: "supercharger",
-        nome: "Supercharger",
-        icone: "🔧",
-        descricao:
-            "Sistema de sobrealimentação mecânica que aumenta a pressão de admissão do motor.",
-
-        preco: 9500,
-
-        hp: 50,
-        torque: 8,
-
-        aceleracaoPercentual: -0.13,
-        vmax: 17,
-
-        consumo: -1.5,
-        confiabilidade: -8,
-
-        risco: 3,
-
-        beneficioSeguranca: 0,
-        impactoDesempenho: 8,
-
-        objetivoPeso: {
-            economia: 1,
-            desempenho: 4,
-            esportivo: 4
+        body {
+          background-color: var(--bg-primary);
+          color: #f3f4f6;
+          font-family: 'Plus Jakarta Sans', sans-serif;
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
         }
-    },
 
-    remap: {
-        id: "remap",
-        nome: "Remap de ECU",
-        icone: "💻",
-        descricao:
-            "Recalibração dos parâmetros da unidade de gerenciamento eletrônico do motor.",
-
-        preco: 2200,
-
-        hp: 20,
-        torque: 3,
-
-        aceleracaoPercentual: -0.06,
-        vmax: 8,
-
-        consumo: -0.4,
-        confiabilidade: -3,
-
-        risco: 2,
-
-        beneficioSeguranca: 0,
-        impactoDesempenho: 5,
-
-        objetivoPeso: {
-            economia: 2,
-            desempenho: 5,
-            esportivo: 4
+        /* Scrollbar Customizada */
+        ::-webkit-scrollbar {
+          width: 8px;
         }
-    },
-
-    brakes: {
-        id: "brakes",
-        nome: "Upgrade de Freios",
-        icone: "🛑",
-        descricao:
-            "Atualização do sistema de frenagem para melhorar controle e capacidade de desaceleração.",
-
-        preco: 3500,
-
-        hp: 0,
-        torque: 0,
-
-        aceleracaoPercentual: 0,
-        vmax: 0,
-
-        consumo: 0,
-        confiabilidade: 2,
-
-        risco: 1,
-
-        beneficioSeguranca: 10,
-        impactoDesempenho: 2,
-
-        objetivoPeso: {
-            economia: 1,
-            desempenho: 2,
-            esportivo: 5
+        ::-webkit-scrollbar-track {
+          background: var(--bg-primary);
         }
-    },
-
-    suspension: {
-        id: "suspension",
-        nome: "Suspensão Esportiva",
-        icone: "🏁",
-        descricao:
-            "Conjunto voltado à melhoria da estabilidade, controle de carroceria e comportamento dinâmico.",
-
-        preco: 4500,
-
-        hp: 0,
-        torque: 0,
-
-        aceleracaoPercentual: -0.01,
-        vmax: 2,
-
-        consumo: -0.1,
-        confiabilidade: 1,
-
-        risco: 1,
-
-        beneficioSeguranca: 8,
-        impactoDesempenho: 3,
-
-        objetivoPeso: {
-            economia: 1,
-            desempenho: 3,
-            esportivo: 5
+        ::-webkit-scrollbar-thumb {
+          background: #262626;
+          border-radius: 4px;
         }
-    }
-};
-
-
-/* ============================================================
-   3. ESTADO GLOBAL DO SISTEMA
-============================================================ */
-
-const state = {
-
-    vehicleId: "gti",
-
-    budget: 0,
-
-    objective: "desempenho",
-
-    selectedModifications: [],
-
-    preparation: null,
-
-    scores: {
-        desempenho: 0,
-        seguranca: 0,
-        economia: 0,
-        custoBeneficio: 0
-    },
-
-    charts: {
-        power: null,
-        torque: null,
-        performance: null,
-        evaluation: null
-    },
-
-    automaticPreparation: null
-};
-
-
-/* ============================================================
-   4. FUNÇÕES AUXILIARES
-============================================================ */
-
-function $(id) {
-    return document.getElementById(id);
-}
-
-
-function safeNumber(value, fallback = 0) {
-    const number = Number(value);
-
-    if (!Number.isFinite(number)) {
-        return fallback;
-    }
-
-    return number;
-}
-
-
-function clamp(value, min, max) {
-    return Math.min(Math.max(value, min), max);
-}
-
-
-function round(value, decimals = 1) {
-    const factor = Math.pow(10, decimals);
-
-    return Math.round(value * factor) / factor;
-}
-
-
-function formatNumber(value, decimals = 1) {
-    return safeNumber(value).toLocaleString("pt-BR", {
-        minimumFractionDigits: decimals,
-        maximumFractionDigits: decimals
-    });
-}
-
-
-function formatCurrency(value) {
-    return safeNumber(value).toLocaleString("pt-BR", {
-        style: "currency",
-        currency: "BRL"
-    });
-}
-
-
-function formatPercent(value) {
-    return `${formatNumber(value, 1)}%`;
-}
-
-
-function sanitizeFileName(text) {
-    return String(text)
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-zA-Z0-9]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-        .toLowerCase();
-}
-
-
-function getCurrentCar() {
-    return cars[state.vehicleId] || cars.gti;
-}
-
-
-function getSelectedModifications() {
-    return state.selectedModifications
-        .map(id => modifications[id])
-        .filter(Boolean);
-}
-
-
-function hasModification(id) {
-    return state.selectedModifications.includes(id);
-}
-
-
-function setText(id, value) {
-    const element = $(id);
-
-    if (element) {
-        element.textContent = value;
-    }
-}
-
-
-function setHTML(id, value) {
-    const element = $(id);
-
-    if (element) {
-        element.innerHTML = value;
-    }
-}
-
-
-/* ============================================================
-   5. TOAST / NOTIFICAÇÕES
-============================================================ */
-
-function showToast(message, type = "info") {
-
-    let container = $("toastContainer");
-
-    if (!container) {
-        container = document.createElement("div");
-
-        container.id = "toastContainer";
-        container.className = "toast-container";
-
-        container.setAttribute("aria-live", "polite");
-        container.setAttribute("aria-atomic", "true");
-
-        document.body.appendChild(container);
-    }
-
-    const toast = document.createElement("div");
-
-    toast.className = `toast toast-${type}`;
-
-    const icons = {
-        success: "✓",
-        warning: "⚠",
-        error: "✕",
-        info: "ℹ"
-    };
-
-    toast.innerHTML = `
-        <span class="toast-icon">${icons[type] || icons.info}</span>
-        <span class="toast-message">${message}</span>
-        <button
-            type="button"
-            class="toast-close"
-            aria-label="Fechar notificação"
-        >×</button>
-    `;
-
-    const closeButton = toast.querySelector(".toast-close");
-
-    closeButton.addEventListener("click", () => {
-        removeToast(toast);
-    });
-
-    container.appendChild(toast);
-
-    setTimeout(() => {
-        removeToast(toast);
-    }, 4500);
-}
-
-
-function removeToast(toast) {
-
-    if (!toast) {
-        return;
-    }
-
-    toast.classList.add("toast-removing");
-
-    setTimeout(() => {
-        toast.remove();
-    }, 300);
-}
-
-
-/* ============================================================
-   6. BUILD DOS CARDS DE MODIFICAÇÃO
-============================================================ */
-
-function buildModificationCards() {
-
-    const container =
-        $("modificationsContainer") ||
-        $("modificationsGrid") ||
-        $("modificationCards");
-
-    if (!container) {
-        console.warn(
-            "Container de modificações não encontrado."
-        );
-
-        return;
-    }
-
-    container.innerHTML = "";
-
-    Object.values(modifications).forEach(mod => {
-
-        const card = document.createElement("article");
-
-        card.className = "modification-card";
-
-        card.dataset.modification = mod.id;
-
-        card.tabIndex = 0;
-
-        card.setAttribute(
-            "role",
-            "button"
-        );
-
-        card.setAttribute(
-            "aria-pressed",
-            "false"
-        );
-
-        card.innerHTML = `
-            <div class="modification-header">
-
-                <div class="modification-icon">
-                    ${mod.icone}
-                </div>
-
+        ::-webkit-scrollbar-thumb:hover {
+          background: var(--accent-orange);
+        }
+
+        /* Animações de Fade */
+        @keyframes fadeIn {
+          from {
+            opacity: 0;
+            transform: translateY(6px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        .animate-fade-in {
+          animation: fadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        /* Estilos de Impressão (PDF / Print) */
+        @media print {
+          body {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+          }
+          header, footer, button, nav {
+            display: none !important;
+          }
+          #pdf-container {
+            background-color: #ffffff !important;
+            border: none !important;
+            color: #000000 !important;
+          }
+        }
+    </style>
+</head>
+<body class="bg-[#090909] text-gray-100 font-['Plus_Jakarta_Sans',sans-serif] selection:bg-[#FF6B00] selection:text-white min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="sticky top-0 z-50 bg-[#090909]/90 backdrop-blur-md border-b border-[#222]">
+        <div class="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+            <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('home')">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#FF6B00] to-[#cc5500] flex items-center justify-center font-extrabold text-white text-xl shadow-lg shadow-[#FF6B00]/20">AF</div>
                 <div>
-                    <h3>${mod.nome}</h3>
-
-                    <span class="modification-price">
-                        ${formatCurrency(mod.preco)}
-                    </span>
+                    <h1 class="font-extrabold tracking-wider text-lg text-white">AUTO<span class="text-[#FF6B00]">FORGE</span></h1>
+                    <p class="text-[10px] uppercase tracking-widest text-gray-400 font-semibold">Tuning Simulator</p>
                 </div>
-
-                <span
-                    class="modification-check"
-                    aria-hidden="true"
-                >
-                    ✓
-                </span>
-
             </div>
+            
+            <nav class="hidden md:flex items-center gap-1 bg-[#151515] p-1.5 rounded-full border border-[#262626]">
+                <button onclick="switchTab('home')" id="nav-home" class="px-5 py-2 rounded-full text-xs font-semibold transition-all text-white bg-[#FF6B00] shadow-md">Início</button>
+                <button onclick="switchTab('simulator')" id="nav-simulator" class="px-5 py-2 rounded-full text-xs font-semibold transition-all text-gray-400 hover:text-white">Simulador</button>
+                <button onclick="switchTab('performance')" id="nav-performance" class="px-5 py-2 rounded-full text-xs font-semibold transition-all text-gray-400 hover:text-white">Desempenho</button>
+                <button onclick="switchTab('budget')" id="nav-budget" class="px-5 py-2 rounded-full text-xs font-semibold transition-all text-gray-400 hover:text-white">Orçamento</button>
+                <button onclick="switchTab('smart')" id="nav-smart" class="px-5 py-2 rounded-full text-xs font-semibold transition-all text-gray-400 hover:text-white">IA Smart</button>
+                <button onclick="switchTab('safety')" id="nav-safety" class="px-5 py-2 rounded-full text-xs font-semibold transition-all text-gray-400 hover:text-white">Legal & Segurança</button>
+                <button onclick="switchTab('report')" id="nav-report" class="px-5 py-2 rounded-full text-xs font-semibold transition-all text-gray-400 hover:text-white">Relatório PDF</button>
+            </nav>
 
-            <p class="modification-description">
-                ${mod.descricao}
-            </p>
-
-            <div class="modification-details">
-
-                <div>
-                    <span>Potência</span>
-                    <strong>
-                        ${mod.hp > 0 ? `+${mod.hp} HP` : "—"}
-                    </strong>
-                </div>
-
-                <div>
-                    <span>Torque</span>
-                    <strong>
-                        ${mod.torque > 0 ? `+${formatNumber(mod.torque)} kgfm` : "—"}
-                    </strong>
-                </div>
-
-                <div>
-                    <span>0–100 km/h</span>
-                    <strong>
-                        ${
-                            mod.aceleracaoPercentual < 0
-                                ? `${Math.abs(mod.aceleracaoPercentual * 100).toFixed(0)}%`
-                                : "—"
-                        }
-                    </strong>
-                </div>
-
-                <div>
-                    <span>Velocidade</span>
-                    <strong>
-                        ${
-                            mod.vmax > 0
-                                ? `+${mod.vmax} km/h`
-                                : "—"
-                        }
-                    </strong>
-                </div>
-
-                <div>
-                    <span>Consumo</span>
-                    <strong>
-                        ${
-                            mod.consumo < 0
-                                ? `${mod.consumo} km/l`
-                                : "—"
-                        }
-                    </strong>
-                </div>
-
-                <div>
-                    <span>Risco</span>
-                    <strong>
-                        ${getRiskLabel(mod.risco)}
-                    </strong>
-                </div>
-
+            <div class="flex items-center gap-3">
+                <button onclick="resetSimulation()" class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-[#151515] hover:bg-[#222] border border-[#262626] text-xs font-semibold text-gray-300 transition-all">
+                    Reiniciar
+                </button>
+                <button onclick="switchTab('simulator')" class="px-5 py-2.5 rounded-xl bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold transition-all shadow-lg shadow-[#FF6B00]/25 flex items-center gap-2">
+                    Montar Projeto
+                </button>
             </div>
-
-            <div class="modification-footer">
-
-                <span>
-                    Segurança:
-                    ${
-                        mod.beneficioSeguranca > 0
-                            ? `+${mod.beneficioSeguranca}`
-                            : "Neutro"
-                    }
-                </span>
-
-                <span>
-                    Impacto:
-                    ${mod.impactoDesempenho}/10
-                </span>
-
-            </div>
-        `;
-
-        card.addEventListener("click", () => {
-            toggleModification(mod.id);
-        });
-
-        card.addEventListener("keydown", event => {
-
-            if (
-                event.key === "Enter" ||
-                event.key === " "
-            ) {
-
-                event.preventDefault();
-
-                toggleModification(mod.id);
-            }
-        });
-
-        container.appendChild(card);
-    });
-
-    updateModificationVisualState();
-}
-
-
-function toggleModification(id) {
-
-    if (!modifications[id]) {
-        return;
-    }
-
-    const index =
-        state.selectedModifications.indexOf(id);
-
-    if (index >= 0) {
-
-        state.selectedModifications.splice(index, 1);
-
-        showToast(
-            `${modifications[id].nome} removido da preparação.`,
-            "info"
-        );
-
-    } else {
-
-        state.selectedModifications.push(id);
-
-        showToast(
-            `${modifications[id].nome} adicionado à preparação.`,
-            "success"
-        );
-    }
-
-    updateModificationVisualState();
-
-    updateSimulation();
-}
-
-
-function updateModificationVisualState() {
-
-    document
-        .querySelectorAll(".modification-card")
-        .forEach(card => {
-
-            const id = card.dataset.modification;
-
-            const selected =
-                state.selectedModifications.includes(id);
-
-            card.classList.toggle(
-                "selected",
-                selected
-            );
-
-            card.setAttribute(
-                "aria-pressed",
-                String(selected)
-            );
-        });
-}
-
-
-/* ============================================================
-   7. RENDERIZAÇÃO DO VEÍCULO
-============================================================ */
-
-function renderVehicle() {
-
-    const car = getCurrentCar();
-
-    setText(
-        "vehicleName",
-        car.nome
-    );
-
-    setText(
-        "originalPower",
-        `${formatNumber(car.hp, 0)} HP`
-    );
-
-    setText(
-        "originalTorque",
-        `${formatNumber(car.torque)} kgfm`
-    );
-
-    setText(
-        "originalAcceleration",
-        `${formatNumber(car.aceleracao)} s`
-    );
-
-    setText(
-        "originalVmax",
-        `${formatNumber(car.vmax, 0)} km/h`
-    );
-
-    setText(
-        "originalConsumption",
-        `${formatNumber(car.consumo)} km/l`
-    );
-
-    setText(
-        "originalReliability",
-        `${formatNumber(car.confiabilidade, 0)}%`
-    );
-
-    setText(
-        "vehicleCardName",
-        car.nome
-    );
-
-    setText(
-        "vehicleCardPower",
-        `${formatNumber(car.hp, 0)} HP`
-    );
-
-    setText(
-        "vehicleCardTorque",
-        `${formatNumber(car.torque)} kgfm`
-    );
-
-    setText(
-        "vehicleCardAcceleration",
-        `${formatNumber(car.aceleracao)} s`
-    );
-
-    setText(
-        "vehicleCardVmax",
-        `${formatNumber(car.vmax, 0)} km/h`
-    );
-
-    setText(
-        "vehicleCardConsumption",
-        `${formatNumber(car.consumo)} km/l`
-    );
-
-    setText(
-        "vehicleCardReliability",
-        `${formatNumber(car.confiabilidade, 0)}%`
-    );
-}
-
-
-/* ============================================================
-   8. CÁLCULO CENTRAL DA PREPARAÇÃO
-============================================================ */
-
-function calculatePreparation() {
-
-    const car = getCurrentCar();
-
-    const selected =
-        getSelectedModifications();
-
-    let hp = car.hp;
-
-    let torque = car.torque;
-
-    let acceleration = car.aceleracao;
-
-    let vmax = car.vmax;
-
-    let consumption = car.consumo;
-
-    let reliability = car.confiabilidade;
-
-    selected.forEach(mod => {
-
-        hp += mod.hp;
-
-        torque += mod.torque;
-
-        acceleration *=
-            1 + mod.aceleracaoPercentual;
-
-        vmax += mod.vmax;
-
-        consumption += mod.consumo;
-
-        reliability += mod.confiabilidade;
-    });
-
-
-    /*
-        Limites de segurança matemática.
-
-        Evitamos valores impossíveis ou negativos.
-    */
-
-    hp = Math.max(hp, 1);
-
-    torque = Math.max(torque, 0.1);
-
-    acceleration = Math.max(acceleration, 1);
-
-    vmax = Math.max(vmax, 1);
-
-    consumption = Math.max(consumption, 0.1);
-
-    reliability =
-        clamp(reliability, 0, 100);
-
-
-    const cost =
-        selected.reduce(
-            (total, mod) => total + mod.preco,
-            0
-        );
-
-
-    const powerGain =
-        hp - car.hp;
-
-    const torqueGain =
-        torque - car.torque;
-
-    const accelerationDifference =
-        acceleration - car.aceleracao;
-
-    const vmaxDifference =
-        vmax - car.vmax;
-
-    const consumptionDifference =
-        consumption - car.consumo;
-
-    const reliabilityDifference =
-        reliability - car.confiabilidade;
-
-
-    const risk =
-        calculateSafetyRisk();
-
-
-    const preparation = {
-
-        original: {
-            hp: car.hp,
-            torque: car.torque,
-            acceleration: car.aceleracao,
-            vmax: car.vmax,
-            consumption: car.consumo,
-            reliability: car.confiabilidade
-        },
-
-        prepared: {
-            hp: round(hp, 1),
-            torque: round(torque, 1),
-            acceleration: round(acceleration, 2),
-            vmax: round(vmax, 1),
-            consumption: round(consumption, 1),
-            reliability: round(reliability, 1)
-        },
-
-        differences: {
-            hp: round(powerGain, 1),
-            torque: round(torqueGain, 1),
-            acceleration: round(accelerationDifference, 2),
-            vmax: round(vmaxDifference, 1),
-            consumption: round(consumptionDifference, 1),
-            reliability: round(reliabilityDifference, 1)
-        },
-
-        cost,
-
-        risk
-    };
-
-    state.preparation = preparation;
-
-    return preparation;
-}
-
-
-/* ============================================================
-   9. ORÇAMENTO
-============================================================ */
-
-function calculateBudget() {
-
-    const budgetInput =
-        $("budget");
-
-    let budget = 0;
-
-    if (budgetInput) {
-
-        let raw =
-            budgetInput.value;
-
-        /*
-            Aceita valores digitados como:
-            15000
-            15000,50
-            R$ 15.000,00
-        */
-
-        raw = String(raw)
-            .replace(/[R$\s]/g, "")
-            .replace(/\./g, "")
-            .replace(",", ".");
-
-        budget = Number(raw);
-    }
-
-    if (!Number.isFinite(budget)) {
-        budget = 0;
-    }
-
-    budget = Math.max(0, budget);
-
-    state.budget = budget;
-
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
-
-    const cost =
-        preparation.cost;
-
-    const remaining =
-        budget - cost;
-
-    const percentage =
-        budget > 0
-            ? (cost / budget) * 100
-            : cost > 0
-                ? 100
-                : 0;
-
-    const exceeded =
-        cost > budget && budget > 0;
-
-    const invalid =
-        budget <= 0;
-
-
-    return {
-
-        budget,
-
-        cost,
-
-        remaining,
-
-        percentage,
-
-        exceeded,
-
-        invalid
-    };
-}
-
-
-/* ============================================================
-   10. RENDERIZAÇÃO DO ORÇAMENTO
-============================================================ */
-
-function renderBudget() {
-
-    const budgetData =
-        calculateBudget();
-
-    setText(
-        "budgetValue",
-        formatCurrency(budgetData.budget)
-    );
-
-    setText(
-        "preparationCost",
-        formatCurrency(budgetData.cost)
-    );
-
-    setText(
-        "remainingBudget",
-        formatCurrency(
-            budgetData.remaining
-        )
-    );
-
-    setText(
-        "budgetPercentage",
-        formatPercent(
-            budgetData.percentage
-        )
-    );
-
-
-    const progress =
-        $("budgetProgress");
-
-    if (progress) {
-
-        const visualPercentage =
-            clamp(
-                budgetData.percentage,
-                0,
-                100
-            );
-
-        progress.style.width =
-            `${visualPercentage}%`;
-
-        progress.classList.toggle(
-            "danger",
-            budgetData.exceeded
-        );
-
-        progress.classList.toggle(
-            "warning",
-            !budgetData.exceeded &&
-            budgetData.percentage >= 80
-        );
-    }
-
-
-    const status =
-        $("budgetStatus");
-
-    if (status) {
-
-        status.classList.remove(
-            "success",
-            "warning",
-            "danger"
-        );
-
-        if (budgetData.invalid) {
-
-            status.textContent =
-                "Informe um orçamento válido.";
-
-            status.classList.add(
-                "warning"
-            );
-
-        } else if (budgetData.exceeded) {
-
-            status.textContent =
-                `⚠ Orçamento excedido em ${formatCurrency(
-                    Math.abs(budgetData.remaining)
-                )}`;
-
-            status.classList.add(
-                "danger"
-            );
-
-        } else {
-
-            status.textContent =
-                "✓ Preparação dentro do orçamento.";
-
-            status.classList.add(
-                "success"
-            );
-        }
-    }
-
-
-    const error =
-        $("budgetError");
-
-    if (error) {
-
-        if (budgetData.invalid) {
-
-            error.textContent =
-                "Informe um orçamento maior que zero.";
-
-            error.hidden = false;
-
-        } else {
-
-            error.textContent = "";
-
-            error.hidden = true;
-        }
-    }
-}
-
-
-/* ============================================================
-   11. DETALHAMENTO DOS CUSTOS
-============================================================ */
-
-function renderCostDetails() {
-
-    const container =
-        $("costDetails");
-
-    if (!container) {
-        return;
-    }
-
-    const selected =
-        getSelectedModifications();
-
-    if (selected.length === 0) {
-
-        container.innerHTML = `
-            <tr>
-                <td colspan="2">
-                    Nenhuma modificação selecionada.
-                </td>
-            </tr>
-        `;
-
-        return;
-    }
-
-
-    container.innerHTML =
-        selected.map(mod => `
-            <tr>
-                <td>${mod.nome}</td>
-                <td>${formatCurrency(mod.preco)}</td>
-            </tr>
-        `).join("");
-
-
-    const total =
-        selected.reduce(
-            (sum, mod) =>
-                sum + mod.preco,
-            0
-        );
-
-    container.innerHTML += `
-        <tr class="total-row">
-            <td><strong>Total</strong></td>
-            <td>
-                <strong>${formatCurrency(total)}</strong>
-            </td>
-        </tr>
-    `;
-}
-
-
-/* ============================================================
-   12. COMPARAÇÃO ORIGINAL X PREPARADO
-============================================================ */
-
-function renderComparison() {
-
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
-
-    const rows = [
-
-        {
-            id: "comparisonPower",
-            original:
-                `${formatNumber(
-                    preparation.original.hp,
-                    0
-                )} HP`,
-            prepared:
-                `${formatNumber(
-                    preparation.prepared.hp,
-                    0
-                )} HP`,
-            difference:
-                preparation.differences.hp,
-            suffix: " HP",
-            positiveWhenGreater: true
-        },
-
-        {
-            id: "comparisonTorque",
-            original:
-                `${formatNumber(
-                    preparation.original.torque
-                )} kgfm`,
-            prepared:
-                `${formatNumber(
-                    preparation.prepared.torque
-                )} kgfm`,
-            difference:
-                preparation.differences.torque,
-            suffix: " kgfm",
-            positiveWhenGreater: true
-        },
-
-        {
-            id: "comparisonAcceleration",
-            original:
-                `${formatNumber(
-                    preparation.original.acceleration,
-                    2
-                )} s`,
-            prepared:
-                `${formatNumber(
-                    preparation.prepared.acceleration,
-                    2
-                )} s`,
-            difference:
-                preparation.differences.acceleration,
-            suffix: " s",
-            positiveWhenGreater: false
-        },
-
-        {
-            id: "comparisonVmax",
-            original:
-                `${formatNumber(
-                    preparation.original.vmax,
-                    0
-                )} km/h`,
-            prepared:
-                `${formatNumber(
-                    preparation.prepared.vmax,
-                    0
-                )} km/h`,
-            difference:
-                preparation.differences.vmax,
-            suffix: " km/h",
-            positiveWhenGreater: true
-        },
-
-        {
-            id: "comparisonConsumption",
-            original:
-                `${formatNumber(
-                    preparation.original.consumption
-                )} km/l`,
-            prepared:
-                `${formatNumber(
-                    preparation.prepared.consumption
-                )} km/l`,
-            difference:
-                preparation.differences.consumption,
-            suffix: " km/l",
-            positiveWhenGreater: true
-        },
-
-        {
-            id: "comparisonReliability",
-            original:
-                `${formatNumber(
-                    preparation.original.reliability,
-                    0
-                )}%`,
-            prepared:
-                `${formatNumber(
-                    preparation.prepared.reliability,
-                    0
-                )}%`,
-            difference:
-                preparation.differences.reliability,
-            suffix: "%",
-            positiveWhenGreater: true
-        }
-    ];
-
-
-    rows.forEach(row => {
-
-        const element =
-            $(row.id);
-
-        if (!element) {
-            return;
-        }
-
-        const difference =
-            row.difference;
-
-        let text;
-
-        if (Math.abs(difference) < 0.01) {
-
-            text =
-                "Neutro";
-
-        } else {
-
-            const sign =
-                difference > 0
-                    ? "+"
-                    : "";
-
-            text =
-                `${sign}${formatNumber(
-                    difference,
-                    Math.abs(difference) < 10
-                        ? 2
-                        : 1
-                )}${row.suffix}`;
-        }
-
-        element.textContent =
-            text;
-
-        element.classList.remove(
-            "positive",
-            "negative",
-            "neutral"
-        );
-
-
-        /*
-            Para 0–100:
-            valor menor = melhoria.
-
-            Para os demais:
-            valor maior = melhoria.
-        */
-
-        const isImprovement =
-            row.positiveWhenGreater
-                ? difference > 0
-                : difference < 0;
-
-
-        if (Math.abs(difference) < 0.01) {
-
-            element.classList.add(
-                "neutral"
-            );
-
-        } else if (isImprovement) {
-
-            element.classList.add(
-                "positive"
-            );
-
-        } else {
-
-            element.classList.add(
-                "negative"
-            );
-        }
-    });
-
-
-    setText(
-        "preparedPower",
-        `${formatNumber(
-            preparation.prepared.hp,
-            0
-        )} HP`
-    );
-
-    setText(
-        "preparedTorque",
-        `${formatNumber(
-            preparation.prepared.torque
-        )} kgfm`
-    );
-
-    setText(
-        "preparedAcceleration",
-        `${formatNumber(
-            preparation.prepared.acceleration,
-            2
-        )} s`
-    );
-
-    setText(
-        "preparedVmax",
-        `${formatNumber(
-            preparation.prepared.vmax,
-            0
-        )} km/h`
-    );
-
-    setText(
-        "preparedConsumption",
-        `${formatNumber(
-            preparation.prepared.consumption
-        )} km/l`
-    );
-
-    setText(
-        "preparedReliability",
-        `${formatNumber(
-            preparation.prepared.reliability,
-            0
-        )}%`
-    );
-}
-
-
-/* ============================================================
-   13. CÁLCULO DO RISCO
-============================================================ */
-
-function calculateSafetyRisk() {
-
-    const selected =
-        getSelectedModifications();
-
-    if (selected.length === 0) {
-        return {
-            score: 0,
-            level: "Baixo",
-            description:
-                "Nenhuma modificação de maior impacto foi selecionada."
-        };
-    }
-
-    let riskScore =
-        selected.reduce(
-            (total, mod) =>
-                total + mod.risco,
-            0
-        );
-
-
-    const hasPowerModification =
-        selected.some(
-            mod =>
-                mod.hp >= 20
-        );
-
-    const hasBrakes =
-        hasModification("brakes");
-
-    const hasSuspension =
-        hasModification("suspension");
-
-
-    if (
-        hasPowerModification &&
-        !hasBrakes
-    ) {
-        riskScore += 2;
-    }
-
-    if (
-        hasPowerModification &&
-        !hasSuspension
-    ) {
-        riskScore += 1;
-    }
-
-
-    let level;
-
-    if (riskScore <= 3) {
-
-        level = "Baixo";
-
-    } else if (riskScore <= 7) {
-
-        level = "Médio";
-
-    } else {
-
-        level = "Alto";
-    }
-
-
-    let description;
-
-    if (level === "Baixo") {
-
-        description =
-            "Preparação com alterações de menor impacto. Ainda é importante realizar instalação, manutenção e inspeção adequadas.";
-
-    } else if (level === "Médio") {
-
-        description =
-            "A preparação envolve alterações que exigem maior atenção à manutenção, compatibilidade dos componentes e segurança.";
-
-    } else {
-
-        description =
-            "A preparação envolve alterações significativas no conjunto mecânico. Recomenda-se avaliação profissional, componentes compatíveis e atenção especial à segurança.";
-    }
-
-
-    return {
-        score: riskScore,
-        level,
-        description
-    };
-}
-
-
-/* ============================================================
-   14. SEGURANÇA
-============================================================ */
-
-function calculateSafety() {
-
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
-
-    const risk =
-        calculateSafetyRisk();
-
-    const selected =
-        getSelectedModifications();
-
-    let safetyScore =
-        preparation.prepared.reliability;
-
-
-    /*
-        Freios e suspensão recebem peso positivo.
-
-        O sistema parte da confiabilidade do veículo
-        e adiciona benefícios de segurança.
-    */
-
-    selected.forEach(mod => {
-
-        safetyScore +=
-            mod.beneficioSeguranca * 1.5;
-    });
-
-
-    if (
-        preparation.prepared.hp >
-        preparation.original.hp * 1.2 &&
-        !hasModification("brakes")
-    ) {
-
-        safetyScore -= 12;
-    }
-
-
-    if (
-        preparation.prepared.hp >
-        preparation.original.hp * 1.2 &&
-        !hasModification("suspension")
-    ) {
-
-        safetyScore -= 6;
-    }
-
-
-    if (risk.level === "Médio") {
-        safetyScore -= 5;
-    }
-
-    if (risk.level === "Alto") {
-        safetyScore -= 12;
-    }
-
-
-    safetyScore =
-        clamp(
-            safetyScore,
-            0,
-            100
-        );
-
-
-    return {
-        score: round(safetyScore, 1),
-        risk
-    };
-}
-
-
-function renderSafety() {
-
-    const safety =
-        calculateSafety();
-
-    const risk =
-        safety.risk;
-
-
-    setText(
-        "riskLevel",
-        risk.level
-    );
-
-    setText(
-        "riskDescription",
-        risk.description
-    );
-
-    setText(
-        "safetyScore",
-        `${formatNumber(
-            safety.score,
-            0
-        )}/100`
-    );
-
-
-    const indicator =
-        $("riskIndicator");
-
-    if (indicator) {
-
-        indicator.classList.remove(
-            "low",
-            "medium",
-            "high"
-        );
-
-        if (risk.level === "Baixo") {
-            indicator.classList.add("low");
-        } else if (risk.level === "Médio") {
-            indicator.classList.add("medium");
-        } else {
-            indicator.classList.add("high");
-        }
-    }
-
-
-    const riskBar =
-        $("riskProgress");
-
-    if (riskBar) {
-
-        const percentage =
-            risk.level === "Baixo"
-                ? 30
-                : risk.level === "Médio"
-                    ? 60
-                    : 90;
-
-        riskBar.style.width =
-            `${percentage}%`;
-    }
-}
-
-
-/* ============================================================
-   15. CÁLCULO DAS PONTUAÇÕES
-============================================================ */
-
-function calculateScores() {
-
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
-
-    const budget =
-        calculateBudget();
-
-    const safety =
-        calculateSafety();
-
-    const selected =
-        getSelectedModifications();
-
-
-    /* --------------------------------------------------------
-       DESEMPENHO
-
-       Considera:
-       - ganho de potência;
-       - ganho de torque;
-       - redução do 0–100;
-       - aumento da velocidade máxima.
-    -------------------------------------------------------- */
-
-    const hpGainPercent =
-        preparation.original.hp > 0
-            ? (
-                preparation.differences.hp /
-                preparation.original.hp
-            ) * 100
-            : 0;
-
-    const torqueGainPercent =
-        preparation.original.torque > 0
-            ? (
-                preparation.differences.torque /
-                preparation.original.torque
-            ) * 100
-            : 0;
-
-    const accelerationImprovement =
-        preparation.original.acceleration > 0
-            ? (
-                (
-                    preparation.original.acceleration -
-                    preparation.prepared.acceleration
-                ) /
-                preparation.original.acceleration
-            ) * 100
-            : 0;
-
-    const vmaxGainPercent =
-        preparation.original.vmax > 0
-            ? (
-                preparation.differences.vmax /
-                preparation.original.vmax
-            ) * 100
-            : 0;
-
-
-    const performanceScore =
-        clamp(
-            5 +
-            hpGainPercent * 0.08 +
-            torqueGainPercent * 0.06 +
-            accelerationImprovement * 0.05 +
-            vmaxGainPercent * 0.04,
-            0,
-            10
-        );
-
-
-    /* --------------------------------------------------------
-       SEGURANÇA
-    -------------------------------------------------------- */
-
-    let safetyScore =
-        safety.score / 10;
-
-
-    /*
-        Upgrade de freios e suspensão
-        possuem influência adicional.
-    */
-
-    if (hasModification("brakes")) {
-        safetyScore += 0.5;
-    }
-
-    if (hasModification("suspension")) {
-        safetyScore += 0.3;
-    }
-
-    safetyScore =
-        clamp(
-            safetyScore,
-            0,
-            10
-        );
-
-
-    /* --------------------------------------------------------
-       ECONOMIA
-
-       Considera:
-       - consumo;
-       - confiabilidade;
-       - custo.
-
-       Quanto menor o consumo, melhor.
-       A lógica usa o consumo original como referência.
-    -------------------------------------------------------- */
-
-    const consumptionVariation =
-        preparation.original.consumption > 0
-            ? (
-                preparation.prepared.consumption /
-                preparation.original.consumption
-            )
-            : 1;
-
-
-    let economyScore =
-        5 +
-        (
-            consumptionVariation - 1
-        ) * 10;
-
-
-    economyScore +=
-        (
-            preparation.prepared.reliability -
-            preparation.original.reliability
-        ) * 0.04;
-
-
-    if (
-        budget.budget > 0 &&
-        budget.cost > 0
-    ) {
-
-        const costPercentage =
-            budget.cost /
-            budget.budget;
-
-        economyScore -=
-            costPercentage * 1.5;
-    }
-
-
-    economyScore =
-        clamp(
-            economyScore,
-            0,
-            10
-        );
-
-
-    /* --------------------------------------------------------
-       CUSTO-BENEFÍCIO
-
-       Considera:
-       - ganho de desempenho;
-       - custo;
-       - utilização do orçamento;
-       - quantidade de modificações.
-
-       Orçamento zero é tratado explicitamente.
-    -------------------------------------------------------- */
-
-    let costBenefitScore = 0;
-
-
-    if (budget.budget <= 0) {
-
-        /*
-            Sem orçamento informado,
-            não existe como avaliar corretamente
-            o custo-benefício financeiro.
-        */
-
-        costBenefitScore =
-            selected.length > 0
-                ? 3
-                : 0;
-
-    } else {
-
-        const performanceGain =
-            Math.max(
-                0,
-                performanceScore - 5
-            );
-
-        const costRatio =
-            budget.cost /
-            budget.budget;
-
-        const modificationEfficiency =
-            selected.length > 0
-                ? performanceGain /
-                    selected.length
-                : 0;
-
-        costBenefitScore =
-            5 +
-            performanceGain * 0.8 +
-            modificationEfficiency * 0.6 -
-            costRatio * 3;
-
-
-        if (
-            budget.cost > budget.budget
-        ) {
-            costBenefitScore -= 2;
-        }
-    }
-
-
-    costBenefitScore =
-        clamp(
-            costBenefitScore,
-            0,
-            10
-        );
-
-
-    state.scores = {
-
-        desempenho:
-            round(performanceScore, 1),
-
-        seguranca:
-            round(safetyScore, 1),
-
-        economia:
-            round(economyScore, 1),
-
-        custoBeneficio:
-            round(costBenefitScore, 1)
-    };
-
-
-    return state.scores;
-}
-
-
-/* ============================================================
-   16. RENDERIZAÇÃO DAS PONTUAÇÕES
-============================================================ */
-
-function renderScores() {
-
-    const scores =
-        calculateScores();
-
-
-    setText(
-        "scorePerformance",
-        `${formatNumber(
-            scores.desempenho
-        )}/10`
-    );
-
-    setText(
-        "scoreSafety",
-        `${formatNumber(
-            scores.seguranca
-        )}/10`
-    );
-
-    setText(
-        "scoreEconomy",
-        `${formatNumber(
-            scores.economia
-        )}/10`
-    );
-
-    setText(
-        "scoreCostBenefit",
-        `${formatNumber(
-            scores.custoBeneficio
-        )}/10`
-    );
-
-
-    updateScoreBar(
-        "performanceScoreBar",
-        scores.desempenho
-    );
-
-    updateScoreBar(
-        "safetyScoreBar",
-        scores.seguranca
-    );
-
-    updateScoreBar(
-        "economyScoreBar",
-        scores.economia
-    );
-
-    updateScoreBar(
-        "costBenefitScoreBar",
-        scores.custoBeneficio
-    );
-}
-
-
-function updateScoreBar(id, score) {
-
-    const bar = $(id);
-
-    if (!bar) {
-        return;
-    }
-
-    const percentage =
-        clamp(
-            score * 10,
-            0,
-            100
-        );
-
-    bar.style.width =
-        `${percentage}%`;
-
-    bar.setAttribute(
-        "aria-valuenow",
-        String(score)
-    );
-}
-
-
-/* ============================================================
-   17. RECOMENDAÇÕES
-============================================================ */
-
-function generateRecommendations() {
-
-    const recommendations = [];
-
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
-
-    const budget =
-        calculateBudget();
-
-    const selected =
-        getSelectedModifications();
-
-
-    if (hasModification("turbo")) {
-
-        recommendations.push({
-            type: "warning",
-            title: "Turbo selecionado",
-            text:
-                "O aumento de potência pode exigir atenção especial aos freios, suspensão, arrefecimento e demais componentes."
-        });
-    }
-
-
-    if (hasModification("supercharger")) {
-
-        recommendations.push({
-            type: "warning",
-            title: "Supercharger selecionado",
-            text:
-                "Considere verificar o sistema de arrefecimento e a capacidade dos componentes do motor."
-        });
-    }
-
-
-    if (hasModification("remap")) {
-
-        recommendations.push({
-            type: "info",
-            title: "Remap de ECU",
-            text:
-                "O remapeamento pode alterar o funcionamento do motor e pode afetar condições de garantia. Consulte documentação e profissionais especializados."
-        });
-    }
-
-
-    if (
-        preparation.prepared.hp >
-        preparation.original.hp * 1.20
-    ) {
-
-        recommendations.push({
-            type: "warning",
-            title: "Aumento expressivo de potência",
-            text:
-                "Considere reforçar componentes relacionados à segurança, frenagem, suspensão e controle do veículo."
-        });
-    }
-
-
-    if (
-        preparation.prepared.hp >
-        preparation.original.hp * 1.10 &&
-        !hasModification("brakes")
-    ) {
-
-        recommendations.push({
-            type: "warning",
-            title: "Freios",
-            text:
-                "Considere adicionar um upgrade de freios para acompanhar alterações significativas de desempenho."
-        });
-    }
-
-
-    if (
-        preparation.prepared.hp >
-        preparation.original.hp * 1.10 &&
-        !hasModification("suspension")
-    ) {
-
-        recommendations.push({
-            type: "info",
-            title: "Suspensão",
-            text:
-                "Considere verificar ou atualizar a suspensão para acompanhar alterações de desempenho."
-        });
-    }
-
-
-    if (budget.exceeded) {
-
-        recommendations.push({
-            type: "danger",
-            title: "Orçamento excedido",
-            text:
-                "Sua configuração atual ultrapassa o orçamento informado. Revise as modificações selecionadas."
-        });
-    }
-
-
-    if (selected.length === 0) {
-
-        recommendations.push({
-            type: "info",
-            title: "Configuração original",
-            text:
-                "Selecione modificações para visualizar alterações de desempenho, custo e segurança."
-        });
-    }
-
-
-    if (
-        state.objective === "economia" &&
-        preparation.prepared.consumption <
-        preparation.original.consumption
-    ) {
-
-        recommendations.push({
-            type: "success",
-            title: "Objetivo de economia",
-            text:
-                "A configuração atual prioriza uma abordagem de menor impacto e preservação de consumo."
-        });
-    }
-
-
-    if (
-        state.objective === "desempenho" &&
-        selected.length === 0
-    ) {
-
-        recommendations.push({
-            type: "info",
-            title: "Objetivo de desempenho",
-            text:
-                "Para explorar o objetivo de desempenho, considere modificações compatíveis com seu orçamento."
-        });
-    }
-
-
-    if (
-        state.objective === "esportivo" &&
-        (
-            !hasModification("brakes") ||
-            !hasModification("suspension")
-        )
-    ) {
-
-        recommendations.push({
-            type: "warning",
-            title: "Uso esportivo",
-            text:
-                "Para uma preparação de uso esportivo, avalie especialmente freios e suspensão."
-        });
-    }
-
-
-    return recommendations;
-}
-
-
-function renderRecommendations() {
-
-    const container =
-        $("recommendationsContainer") ||
-        $("recommendationsList");
-
-    if (!container) {
-        return;
-    }
-
-    const recommendations =
-        generateRecommendations();
-
-
-    container.innerHTML =
-        recommendations.map(rec => `
-
-            <article class="
-                recommendation
-                recommendation-${rec.type}
-            ">
-
-                <div class="recommendation-icon">
-
-                    ${
-                        rec.type === "warning"
-                            ? "⚠"
-                            : rec.type === "danger"
-                                ? "!"
-                                : rec.type === "success"
-                                    ? "✓"
-                                    : "ℹ"
-                    }
-
-                </div>
-
-                <div>
-
-                    <h4>
-                        ${rec.title}
-                    </h4>
-
-                    <p>
-                        ${rec.text}
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 py-8 w-full">
+        <!-- HOME TAB -->
+        <section id="tab-home" class="space-y-16 animate-fade-in">
+            <div class="relative rounded-3xl overflow-hidden border border-[#222] bg-gradient-to-r from-[#151515] to-[#090909] p-8 md:p-16 flex flex-col md:flex-row items-center justify-between gap-12">
+                <div class="absolute inset-0 z-0 opacity-20 bg-cover bg-center pointer-events-none" style="background-image: url('https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=1920&q=80')"></div>
+                <div class="relative z-10 max-w-xl space-y-6">
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#FF6B00]/10 border border-[#FF6B00]/30 text-[#FF6B00] text-xs font-bold">
+                        ⚡ NOVA VERSÃO 2.0 DISPONÍVEL
+                    </div>
+                    <h2 class="text-4xl md:text-6xl font-extrabold tracking-tight text-white leading-tight">
+                        Seu carro.<br>Sua preparação.<br><span class="text-[#FF6B00]">Seu projeto.</span>
+                    </h2>
+                    <p class="text-gray-400 text-sm md:text-base leading-relaxed">
+                        Simule modificações de alta performance em tempo real. Analise potência, torque, custos detalhados, balanço de frenagem e conformidade legal com o DETRAN.
                     </p>
-
+                    <div class="flex flex-wrap gap-4 pt-2">
+                        <button onclick="switchTab('simulator')" class="px-8 py-4 rounded-xl bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold text-sm transition-all shadow-xl shadow-[#FF6B00]/30 flex items-center gap-3">
+                            Começar Simulação ➔
+                        </button>
+                        <button onclick="switchTab('smart')" class="px-8 py-4 rounded-xl bg-[#151515] hover:bg-[#222] border border-[#262626] text-white font-bold text-sm transition-all">
+                            IA Preparação Inteligente
+                        </button>
+                    </div>
                 </div>
-
-            </article>
-
-        `).join("");
-}
-
-
-/* ============================================================
-   18. LEGALIZAÇÃO
-============================================================ */
-
-function generateLegalizationWarnings() {
-
-    const warnings = [];
-
-
-    warnings.push({
-        type: "general",
-        text:
-            "Algumas modificações podem exigir regularização, inspeção ou documentação específica conforme a legislação aplicável. Verifique as exigências atuais dos órgãos competentes antes de realizar alterações no veículo."
-    });
-
-
-    if (hasModification("turbo")) {
-
-        warnings.push({
-            type: "warning",
-            text:
-                "Alterações no sistema de motorização podem estar sujeitas a requisitos de regularização."
-        });
-    }
-
-
-    if (hasModification("supercharger")) {
-
-        warnings.push({
-            type: "warning",
-            text:
-                "Alterações no sistema de motorização podem exigir avaliação de conformidade e documentação específica."
-        });
-    }
-
-
-    if (hasModification("remap")) {
-
-        warnings.push({
-            type: "warning",
-            text:
-                "Alterações no gerenciamento eletrônico podem afetar emissões, garantia e conformidade do veículo."
-        });
-    }
-
-
-    if (hasModification("brakes")) {
-
-        warnings.push({
-            type: "info",
-            text:
-                "Alterações no sistema de frenagem devem ser realizadas com componentes compatíveis e instalação adequada."
-        });
-    }
-
-
-    if (hasModification("suspension")) {
-
-        warnings.push({
-            type: "info",
-            text:
-                "Alterações na suspensão podem modificar características do veículo e devem ser avaliadas conforme os requisitos aplicáveis."
-        });
-    }
-
-
-    return warnings;
-}
-
-
-function renderLegalization() {
-
-    const container =
-        $("legalizationContainer") ||
-        $("legalizationWarnings");
-
-    if (!container) {
-        return;
-    }
-
-    const warnings =
-        generateLegalizationWarnings();
-
-
-    container.innerHTML =
-        warnings.map(item => `
-
-            <div class="
-                legal-warning
-                legal-${item.type}
-            ">
-
-                <span
-                    class="legal-icon"
-                    aria-hidden="true"
-                >
-                    ${
-                        item.type === "warning"
-                            ? "⚠"
-                            : item.type === "info"
-                                ? "ℹ"
-                                : "!"
-                    }
-                </span>
-
-                <p>
-                    ${item.text}
-                </p>
-
+                <div class="relative z-10 w-full md:w-1/2 rounded-2xl overflow-hidden shadow-2xl border border-[#262626]">
+                    <img src="https://images.unsplash.com/photo-1617814076367-b759c7d7e738?auto=format&fit=crop&w=800&q=80" alt="Carro Preparado" class="w-full h-80 object-cover hover:scale-105 transition-transform duration-700">
+                </div>
             </div>
 
-        `).join("");
-}
+            <!-- Como Funciona & Categorias -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="bg-[#151515] border border-[#222] p-8 rounded-2xl space-y-4 hover:border-[#FF6B00]/50 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#FF6B00]/10 text-[#FF6B00] flex items-center justify-center font-bold text-xl">01</div>
+                    <h3 class="text-lg font-bold text-white">Escolha o Veículo</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Selecione entre hatches esportivos, sedãs de luxo, muscle cars e superhatches com especificações técnicas reais.</p>
+                </div>
+                <div class="bg-[#151515] border border-[#222] p-8 rounded-2xl space-y-4 hover:border-[#FF6B00]/50 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#FF6B00]/10 text-[#FF6B00] flex items-center justify-center font-bold text-xl">02</div>
+                    <h3 class="text-lg font-bold text-white">Adicione Upgrades</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Configure turbos, superchargers, remaps de ECU, kits de freios ventilados e suspensões coilover ajustáveis.</p>
+                </div>
+                <div class="bg-[#151515] border border-[#222] p-8 rounded-2xl space-y-4 hover:border-[#FF6B00]/50 transition-all">
+                    <div class="w-12 h-12 rounded-xl bg-[#FF6B00]/10 text-[#FF6B00] flex items-center justify-center font-bold text-xl">03</div>
+                    <h3 class="text-lg font-bold text-white">Analise Resultados</h3>
+                    <p class="text-xs text-gray-400 leading-relaxed">Monitore ganho de potência, gráficos de desempenho, pontuação de confiabilidade e relatórios PDF profissionais.</p>
+                </div>
+            </div>
+        </section>
 
+        <!-- SIMULATOR TAB -->
+        <section id="tab-simulator" class="hidden space-y-8 animate-fade-in">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#151515] p-6 rounded-2xl border border-[#222]">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">Configurador de Veículo</h2>
+                    <p class="text-xs text-gray-400">Escolha a base e selecione os upgrades para transformar seu carro.</p>
+                </div>
+                <div class="flex items-center gap-3 w-full md:w-auto">
+                    <label class="text-xs font-semibold text-gray-300">Veículo Base:</label>
+                    <select id="car-select" onchange="changeCar(this.value)" class="bg-[#090909] border border-[#262626] text-white text-xs rounded-xl px-4 py-2.5 outline-none focus:border-[#FF6B00]">
+                        <!-- Populado via JS -->
+                    </select>
+                </div>
+            </div>
 
-/* ============================================================
-   19. GRÁFICOS
-============================================================ */
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Vehicle Preview & Stats Summary -->
+                <div class="lg:col-span-1 space-y-6">
+                    <div class="bg-[#151515] border border-[#222] rounded-2xl overflow-hidden p-6 space-y-4">
+                        <div class="relative rounded-xl overflow-hidden h-48 border border-[#262626]">
+                            <img id="car-img" src="" alt="Veículo Selecionado" class="w-full h-full object-cover" onerror="this.src='https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=800&q=80'">
+                            <div class="absolute top-3 left-3 bg-[#090909]/80 backdrop-blur-md px-3 py-1 rounded-lg text-[10px] font-bold text-[#FF6B00] border border-[#222]">
+                                <span id="car-badge">Stage Atual</span>
+                            </div>
+                        </div>
+                        <div>
+                            <h3 id="car-name-title" class="text-xl font-bold text-white">Nome do Carro</h3>
+                            <p id="car-specs-subtitle" class="text-xs text-gray-400">Motorização original</p>
+                        </div>
+                        
+                        <!-- Mini Teaser Telemetry -->
+                        <div class="grid grid-cols-2 gap-3 pt-2 border-t border-[#222]">
+                            <div class="bg-[#090909] p-3 rounded-xl border border-[#222]">
+                                <span class="text-[10px] uppercase text-gray-500 font-semibold">Potência Total</span>
+                                <p id="teaser-hp" class="text-lg font-extrabold text-[#FF6B00]">0 HP</p>
+                            </div>
+                            <div class="bg-[#090909] p-3 rounded-xl border border-[#222]">
+                                <span class="text-[10px] uppercase text-gray-500 font-semibold">Custo Upgrades</span>
+                                <p id="teaser-cost" class="text-lg font-extrabold text-white">R$ 0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-function destroyChart(chartName) {
+                <!-- Upgrades Catalog -->
+                <div class="lg:col-span-2 space-y-4">
+                    <h3 class="text-lg font-bold text-white">Modificações Disponíveis</h3>
+                    <div id="upgrades-list" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <!-- Renderizado via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    if (
-        state.charts[chartName] &&
-        typeof state.charts[chartName].destroy === "function"
-    ) {
+        <!-- PERFORMANCE TAB -->
+        <section id="tab-performance" class="hidden space-y-8 animate-fade-in">
+            <div class="flex justify-between items-center bg-[#151515] p-6 rounded-2xl border border-[#222]">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">Painel de Desempenho & Telemetria</h2>
+                    <p class="text-xs text-gray-400">Comparação em tempo real entre o veículo original e a versão preparada.</p>
+                </div>
+                <button onclick="switchTab('simulator')" class="px-4 py-2 bg-[#FF6B00] text-white text-xs font-bold rounded-xl">Editar Upgrades</button>
+            </div>
 
-        state.charts[chartName].destroy();
+            <!-- KPI Cards Grid -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-[#151515] border border-[#222] p-5 rounded-2xl space-y-1">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Potência (HP)</span>
+                    <div class="flex items-baseline gap-2">
+                        <h3 id="perf-hp" class="text-2xl font-extrabold text-white">0</h3>
+                        <span id="perf-hp-diff" class="text-xs font-bold text-[#FF6B00]">+0</span>
+                    </div>
+                </div>
+                <div class="bg-[#151515] border border-[#222] p-5 rounded-2xl space-y-1">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Torque (kgfm)</span>
+                    <div class="flex items-baseline gap-2">
+                        <h3 id="perf-torque" class="text-2xl font-extrabold text-white">0</h3>
+                        <span id="perf-torque-diff" class="text-xs font-bold text-[#FF6B00]">+0</span>
+                    </div>
+                </div>
+                <div class="bg-[#151515] border border-[#222] p-5 rounded-2xl space-y-1">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">0–100 km/h</span>
+                    <div class="flex items-baseline gap-2">
+                        <h3 id="perf-accel" class="text-2xl font-extrabold text-white">0s</h3>
+                        <span id="perf-accel-diff" class="text-xs font-bold text-green-500">-0s</span>
+                    </div>
+                </div>
+                <div class="bg-[#151515] border border-[#222] p-5 rounded-2xl space-y-1">
+                    <span class="text-[10px] uppercase tracking-wider text-gray-400 font-semibold">Confiabilidade</span>
+                    <h3 id="perf-reliability" class="text-2xl font-extrabold text-white">100%</h3>
+                </div>
+            </div>
 
-        state.charts[chartName] =
-            null;
-    }
-}
+            <!-- Charts Container -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-[#151515] border border-[#222] p-6 rounded-2xl space-y-4">
+                    <h4 class="text-sm font-bold text-white">Curva de Potência (HP) vs. RPM</h4>
+                    <div class="h-64 relative">
+                        <canvas id="powerChart"></canvas>
+                    </div>
+                </div>
+                <div class="bg-[#151515] border border-[#222] p-6 rounded-2xl space-y-4">
+                    <h4 class="text-sm font-bold text-white">Análise Dinâmica (Radar)</h4>
+                    <div class="h-64 relative flex items-center justify-center">
+                        <canvas id="radarChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
 
+        <!-- BUDGET TAB -->
+        <section id="tab-budget" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-[#151515] p-6 rounded-2xl border border-[#222] space-y-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">Calculadora de Orçamento</h2>
+                    <p class="text-xs text-gray-400">Defina o seu teto financeiro e receba recomendações otimizadas de custo-benefício.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4 items-center">
+                    <div class="w-full sm:w-1/3 space-y-2">
+                        <label class="text-xs font-semibold text-gray-300">Orçamento Disponível (R$)</label>
+                        <input type="number" id="budget-input" value="15000" step="1000" class="w-full bg-[#090909] border border-[#262626] rounded-xl px-4 py-3 text-white font-bold text-sm outline-none focus:border-[#FF6B00]">
+                    </div>
+                    <button onclick="calculateBudget()" class="w-full sm:w-auto px-8 py-3.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold text-xs rounded-xl transition-all shadow-lg shadow-[#FF6B00]/20">
+                        Otimizar Configuração
+                    </button>
+                </div>
+            </div>
 
-function getChartCanvas(id) {
+            <div id="budget-results" class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- Populado via JS -->
+            </div>
+        </section>
 
-    const canvas = $(id);
+        <!-- SMART PREPARATION TAB -->
+        <section id="tab-smart" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-[#151515] p-8 rounded-2xl border border-[#222] space-y-6">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">IA Preparação Inteligente</h2>
+                    <p class="text-xs text-gray-400">Informe suas prioridades e nossa inteligência criará o setup perfeito para o seu perfil.</p>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-gray-300">Veículo</label>
+                        <select id="smart-car" class="w-full bg-[#090909] border border-[#262626] text-white text-xs rounded-xl px-4 py-3 outline-none focus:border-[#FF6B00]">
+                            <!-- Populado via JS -->
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-gray-300">Objetivo Principal</label>
+                        <select id="smart-goal" class="w-full bg-[#090909] border border-[#262626] text-white text-xs rounded-xl px-4 py-3 outline-none focus:border-[#FF6B00]">
+                            <option value="performance">Desempenho Máximo (Pista / Arrancada)</option>
+                            <option value="balanced">Uso Esportivo Diário (Equilibrado)</option>
+                            <option value="economy">Eficiência & Custo-Benefício</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label class="text-xs font-semibold text-gray-300">Orçamento Limite</label>
+                        <select id="smart-budget-limit" class="w-full bg-[#090909] border border-[#262626] text-white text-xs rounded-xl px-4 py-3 outline-none focus:border-[#FF6B00]">
+                            <option value="10000">Até R$ 10.000</option>
+                            <option value="25000" selected>Até R$ 25.000</option>
+                            <option value="50000">Até R$ 50.000</option>
+                            <option value="100000">Sem Limite</option>
+                        </select>
+                    </div>
+                </div>
+                <button onclick="runSmartSetup()" class="w-full py-4 bg-gradient-to-r from-[#FF6B00] to-[#cc5500] hover:opacity-90 text-white font-bold text-sm rounded-xl transition-all shadow-xl shadow-[#FF6B00]/25">
+                    Gerar Setup com IA ⚡
+                </button>
+            </div>
 
-    if (!canvas) {
-        return null;
-    }
+            <div id="smart-output" class="hidden bg-[#151515] p-8 rounded-2xl border border-[#222] space-y-6">
+                <!-- Resultado da IA -->
+            </div>
+        </section>
 
-    return canvas;
-}
+        <!-- SAFETY & LEGALITY TAB -->
+        <section id="tab-safety" class="hidden space-y-8 animate-fade-in">
+            <div class="bg-[#151515] p-6 rounded-2xl border border-[#222] space-y-2">
+                <h2 class="text-2xl font-extrabold text-white">Segurança, Confiabilidade & Legislação (Brasil)</h2>
+                <p class="text-xs text-gray-400">Análise de risco estrutural e orientações de regularização junto ao DETRAN / INMETRO.</p>
+            </div>
+            <div id="safety-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- Populado via JS -->
+            </div>
+        </section>
 
+        <!-- PDF REPORT TAB -->
+        <section id="tab-report" class="hidden space-y-8 animate-fade-in">
+            <div class="flex justify-between items-center bg-[#151515] p-6 rounded-2xl border border-[#222]">
+                <div>
+                    <h2 class="text-2xl font-extrabold text-white">Relatório Técnico do Projeto</h2>
+                    <p class="text-xs text-gray-400">Documento pronto para exportação em PDF com todas as especificações do seu projeto.</p>
+                </div>
+                <div class="flex gap-3">
+                    <button onclick="exportReportPDF()" class="px-5 py-2.5 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold rounded-xl transition-all flex items-center gap-2 shadow-lg shadow-[#FF6B00]/20">
+                        📥 Baixar Arquivo PDF
+                    </button>
+                    <button onclick="window.print()" class="px-5 py-2.5 bg-[#151515] hover:bg-[#222] border border-[#262626] text-white text-xs font-bold rounded-xl transition-all">
+                        🖨️ Imprimir
+                    </button>
+                </div>
+            </div>
 
-function renderCharts() {
+            <!-- Printable Report Document -->
+            <div id="pdf-container" class="bg-[#151515] border border-[#222] p-8 md:p-12 rounded-3xl space-y-8 text-gray-200">
+                <div class="flex justify-between items-start border-b border-[#262626] pb-8">
+                    <div>
+                        <h1 class="text-3xl font-extrabold text-white tracking-wider">AUTO<span class="text-[#FF6B00]">FORGE</span></h1>
+                        <p class="text-xs text-gray-400">Relatório Técnico de Preparação Automotiva</p>
+                    </div>
+                    <div class="text-right">
+                        <p id="report-date" class="text-xs text-gray-400">Data: 24/11/2026</p>
+                        <p class="text-[10px] text-[#FF6B00] font-bold uppercase">Status: Projeto Simulado</p>
+                    </div>
+                </div>
 
-    /*
-        Chart.js é opcional para evitar que o restante
-        do sistema quebre caso a biblioteca não esteja carregada.
-    */
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-[#090909] p-6 rounded-2xl border border-[#222] space-y-3">
+                        <h3 class="text-sm font-bold text-[#FF6B00] uppercase tracking-wider">Veículo Base</h3>
+                        <p id="report-car-name" class="text-lg font-extrabold text-white">-</p>
+                        <p id="report-car-details" class="text-xs text-gray-400">-</p>
+                    </div>
+                    <div class="bg-[#090909] p-6 rounded-2xl border border-[#222] space-y-3">
+                        <h3 class="text-sm font-bold text-[#FF6B00] uppercase tracking-wider">Resumo de Desempenho</h3>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <span class="text-gray-400">Potência Final:</span> <strong id="report-hp" class="text-white">-</strong>
+                            <span class="text-gray-400">Torque Final:</span> <strong id="report-torque" class="text-white">-</strong>
+                            <span class="text-gray-400">0-100 km/h:</span> <strong id="report-accel" class="text-white">-</strong>
+                            <span class="text-gray-400">Custo Total:</span> <strong id="report-cost" class="text-[#FF6B00]">-</strong>
+                        </div>
+                    </div>
+                </div>
 
-    if (typeof Chart === "undefined") {
+                <div class="space-y-4">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Modificações Aplicadas</h3>
+                    <div id="report-upgrades-list" class="space-y-2">
+                        <!-- Preenchido via JS -->
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
 
-        console.warn(
-            "Chart.js não está carregado."
-        );
+    <!-- Footer -->
+    <footer class="mt-auto border-t border-[#222] bg-[#090909] py-8 text-center text-xs text-gray-500">
+        <p>AutoForge Simulator © 2026. Desenvolvido para entusiastas automotivos de alta performance.</p>
+    </footer>
 
-        return;
-    }
+    <!-- Script Principal -->
+    <script>
+        // Base de Dados de Veículos (atualizada com as fotos fornecidas)
+        const carsData = {
+            golf: {
+                name: "Volkswagen Golf GTI (MK7.5)",
+                specs: "2.0 TSI Turbo • 230 HP • 35.7 kgfm",
+                hp: 230,
+                torque: 35.7,
+                accel: 6.2,
+                topSpeed: 250,
+                consumption: "10.5 km/l",
+                img: "Volkswagen Golf GTI.jpg",
+                badge: "Hot Hatch"
+            },
+            civic: {
+                name: "Honda Civic Si (FC)",
+                specs: "1.5 VTEC Turbo • 208 HP • 26.5 kgfm",
+                hp: 208,
+                torque: 26.5,
+                accel: 7.3,
+                topSpeed: 238,
+                consumption: "12.0 km/l",
+                img: "Honda Civic SI.jpg",
+                badge: "Sport Sedan"
+            },
+            bmw: {
+                name: "BMW 320i M Sport (G20)",
+                specs: "2.0 TwinPower Turbo • 184 HP • 30.6 kgfm",
+                hp: 184,
+                torque: 30.6,
+                accel: 7.1,
+                topSpeed: 235,
+                consumption: "11.2 km/l",
+                img: "BMW 320i.jpg",
+                badge: "Luxury Sport"
+            },
+            audi: {
+                name: "Audi RS3 Sedan (8V)",
+                specs: "2.5 TFSI 5-Cyl Turbo • 400 HP • 48.9 kgfm",
+                hp: 400,
+                torque: 48.9,
+                accel: 4.1,
+                topSpeed: 280,
+                consumption: "8.5 km/l",
+                img: "Audi RS3.jpg",
+                badge: "Super Sedan"
+            },
+            mustang: {
+                name: "Ford Mustang GT (S550)",
+                specs: "5.0L Coyote V8 • 466 HP • 56.7 kgfm",
+                hp: 466,
+                torque: 56.7,
+                accel: 4.3,
+                topSpeed: 250,
+                consumption: "6.8 km/l",
+                img: "Ford Mustang.jpg",
+                badge: "Muscle Car"
+            }
+        };
 
+        // Catálogo de Modificações
+        const upgradesData = [
+            {
+                id: "ecu",
+                name: "Remap de ECU (Stage 2)",
+                desc: "Otimização eletrônica de ponto de ignição, pressão de turbo e limite de torque.",
+                cost: 4500,
+                hpGain: 45,
+                torqueGain: 7.0,
+                accelGain: -0.4,
+                reliability: -5,
+                risk: "Médio",
+                legal: "Necessário registro de alteração de potência no DETRAN se exceder 10%."
+            },
+            {
+                id: "turbo",
+                name: "Upgrade de Turbo / Carregador",
+                desc: "Instalação de turbina redimensionada com rotor em alumínio billet e maior vazão.",
+                cost: 12000,
+                hpGain: 90,
+                torqueGain: 12.5,
+                accelGain: -0.7,
+                reliability: -15,
+                risk: "Alto",
+                legal: "Exige vistoria Inmetro e laudo técnico para regularização no documento."
+            },
+            {
+                id: "exhaust",
+                name: "Escape Esportivo Full Inox",
+                desc: "Sistema redimensionado sem restrições com ponteiras esportivas e ronco grave.",
+                cost: 6500,
+                hpGain: 18,
+                torqueGain: 3.0,
+                accelGain: -0.1,
+                reliability: 0,
+                risk: "Baixo",
+                legal: "Deve respeitar limites máximos de ruído (CONAMA 80 dB)."
+            },
+            {
+                id: "intercooler",
+                name: "Intercooler de Alta Eficiência",
+                desc: "Colmeia frontal redimensionada para reduzir a temperatura do ar admitido.",
+                cost: 3800,
+                hpGain: 15,
+                torqueGain: 2.5,
+                accelGain: -0.1,
+                reliability: 5,
+                risk: "Baixo",
+                legal: "Dispensado de regularização por ser componente térmico auxiliar."
+            },
+            {
+                id: "brakes",
+                name: "Kit Freios Esportivos (Big Brake)",
+                desc: "Discos ranhurados e pinças de 4/6 pistões com pastilhas de alto coeficiente de atrito.",
+                cost: 9500,
+                hpGain: 0,
+                torqueGain: 0,
+                accelGain: -0.2,
+                reliability: 10,
+                risk: "Baixo",
+                legal: "Recomendado para segurança e estabilidade veicular em alta performance."
+            },
+            {
+                id: "suspension",
+                name: "Suspensão Coilover Ajustável",
+                desc: "Amortecedores e molas esportivas reguláveis em altura, carga e rebaixamento.",
+                cost: 7800,
+                hpGain: 0,
+                torqueGain: 0,
+                accelGain: -0.1,
+                reliability: 0,
+                risk: "Médio",
+                legal: "Altura mínima de 100mm do solo e regularização obrigatória no DETRAN."
+            }
+        ];
 
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
+        // Estado da Aplicação
+        let currentCarKey = "golf";
+        let activeUpgrades = [];
+        let powerChartInstance = null;
+        let radarChartInstance = null;
 
-    const scores =
-        state.scores ||
-        calculateScores();
+        // Inicialização
+        document.addEventListener("DOMContentLoaded", () => {
+            populateCarSelects();
+            changeCar("golf");
+            setupCharts();
+        });
 
-
-    /* --------------------------------------------------------
-       GRÁFICO 1 - POTÊNCIA
-    -------------------------------------------------------- */
-
-    const powerCanvas =
-        getChartCanvas("powerChart");
-
-    if (powerCanvas) {
-
-        destroyChart("power");
-
-        state.charts.power =
-            new Chart(
-                powerCanvas.getContext("2d"),
-                {
-                    type: "bar",
-
-                    data: {
-
-                        labels: [
-                            "Original",
-                            "Preparado"
-                        ],
-
-                        datasets: [{
-                            label: "Potência (HP)",
-
-                            data: [
-                                preparation.original.hp,
-                                preparation.prepared.hp
-                            ],
-
-                            backgroundColor: [
-                                "#64748b",
-                                "#22c55e"
-                            ],
-
-                            borderRadius: 8
-                        }]
-                    },
-
-                    options: getChartOptions(
-                        "Potência (HP)"
-                    )
+        // Navegação por Abas
+        function switchTab(tabId) {
+            const tabs = ["home", "simulator", "performance", "budget", "smart", "safety", "report"];
+            tabs.forEach(t => {
+                const el = document.getElementById(`tab-${t}`);
+                const nav = document.getElementById(`nav-${t}`);
+                if (el) el.classList.add("hidden");
+                if (nav) {
+                    nav.classList.remove("bg-[#FF6B00]", "text-white", "shadow-md");
+                    nav.classList.add("text-gray-400");
                 }
-            );
-    }
+            });
 
+            const activeEl = document.getElementById(`tab-${tabId}`);
+            const activeNav = document.getElementById(`nav-${tabId}`);
+            if (activeEl) activeEl.classList.remove("hidden");
+            if (activeNav) {
+                activeNav.classList.add("bg-[#FF6B00]", "text-white", "shadow-md");
+                activeNav.classList.remove("text-gray-400");
+            }
 
-    /* --------------------------------------------------------
-       GRÁFICO 2 - TORQUE
-    -------------------------------------------------------- */
+            if (tabId === "performance") updateCharts();
+            if (tabId === "report") updateReportData();
+            window.scrollTo({ top: 0, behavior: "smooth" });
+        }
 
-    const torqueCanvas =
-        getChartCanvas("torqueChart");
-
-    if (torqueCanvas) {
-
-        destroyChart("torque");
-
-        state.charts.torque =
-            new Chart(
-                torqueCanvas.getContext("2d"),
-                {
-                    type: "bar",
-
-                    data: {
-
-                        labels: [
-                            "Original",
-                            "Preparado"
-                        ],
-
-                        datasets: [{
-                            label: "Torque (kgfm)",
-
-                            data: [
-                                preparation.original.torque,
-                                preparation.prepared.torque
-                            ],
-
-                            backgroundColor: [
-                                "#64748b",
-                                "#3b82f6"
-                            ],
-
-                            borderRadius: 8
-                        }]
-                    },
-
-                    options: getChartOptions(
-                        "Torque (kgfm)"
-                    )
+        function populateCarSelects() {
+            const selects = [document.getElementById("car-select"), document.getElementById("smart-car")];
+            selects.forEach(select => {
+                if (!select) return;
+                select.innerHTML = "";
+                for (const [key, car] of Object.entries(carsData)) {
+                    const opt = document.createElement("option");
+                    opt.value = key;
+                    opt.textContent = car.name;
+                    select.appendChild(opt);
                 }
-            );
-    }
+            });
+        }
 
+        function changeCar(key) {
+            currentCarKey = key;
+            activeUpgrades = [];
+            const car = carsData[key];
+            
+            document.getElementById("car-select").value = key;
+            document.getElementById("smart-car").value = key;
+            document.getElementById("car-name-title").textContent = car.name;
+            document.getElementById("car-specs-subtitle").textContent = car.specs;
+            document.getElementById("car-img").src = car.img;
+            document.getElementById("car-badge").textContent = car.badge;
 
-    /* --------------------------------------------------------
-       GRÁFICO 3 - DESEMPENHO
-    -------------------------------------------------------- */
+            renderUpgradesList();
+            updateTelemetry();
+        }
 
-    const performanceCanvas =
-        getChartCanvas(
-            "performanceChart"
-        );
+        function renderUpgradesList() {
+            const container = document.getElementById("upgrades-list");
+            container.innerHTML = "";
 
-    if (performanceCanvas) {
+            upgradesData.forEach(up => {
+                const isSelected = activeUpgrades.includes(up.id);
+                const card = document.createElement("div");
+                card.className = `p-5 rounded-2xl border transition-all flex flex-col justify-between space-y-4 ${
+                    isSelected ? "bg-[#1f150d] border-[#FF6B00]" : "bg-[#151515] border-[#222] hover:border-[#333]"
+                }`;
+                
+                card.innerHTML = `
+                    <div class="space-y-1">
+                        <div class="flex justify-between items-start">
+                            <h4 class="text-sm font-bold text-white">${up.name}</h4>
+                            <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                                up.risk === 'Alto' ? 'bg-red-500/10 text-red-500 border border-red-500/30' :
+                                up.risk === 'Médio' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30' :
+                                'bg-green-500/10 text-green-500 border border-green-500/30'
+                            }">Risco ${up.risk}</span>
+                        </div>
+                        <p class="text-xs text-gray-400 leading-relaxed">${up.desc}</p>
+                    </div>
+                    <div class="flex justify-between items-center pt-3 border-t border-[#222]">
+                        <div>
+                            <span class="text-[10px] text-gray-500 uppercase font-semibold">Custo Est.</span>
+                            <p class="text-xs font-bold text-white">R$ ${up.cost.toLocaleString()}</p>
+                        </div>
+                        <button onclick="toggleUpgrade('${up.id}')" class="px-4 py-2 rounded-xl text-xs font-bold transition-all ${
+                            isSelected ? 'bg-red-500/20 text-red-400 border border-red-500/40 hover:bg-red-500/30' : 'bg-[#FF6B00] text-white hover:bg-[#e05e00]'
+                        }">
+                            ${isSelected ? 'Remover' : 'Adicionar'}
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
 
-        destroyChart("performance");
+        function toggleUpgrade(id) {
+            if (activeUpgrades.includes(id)) {
+                activeUpgrades = activeUpgrades.filter(item => item !== id);
+            } else {
+                activeUpgrades.push(id);
+            }
+            renderUpgradesList();
+            updateTelemetry();
+        }
 
-        state.charts.performance =
-            new Chart(
-                performanceCanvas.getContext("2d"),
-                {
-                    type: "bar",
+        function calculateTotals() {
+            const car = carsData[currentCarKey];
+            let hp = car.hp;
+            let torque = car.torque;
+            let accel = car.accel;
+            let cost = 0;
+            let reliability = 100;
 
-                    data: {
-
-                        labels: [
-                            "0–100 (s)",
-                            "Velocidade (km/h)"
-                        ],
-
-                        datasets: [
-
-                            {
-                                label: "Original",
-
-                                data: [
-                                    preparation.original.acceleration,
-                                    preparation.original.vmax
-                                ],
-
-                                backgroundColor:
-                                    "#64748b",
-
-                                borderRadius: 8
-                            },
-
-                            {
-                                label: "Preparado",
-
-                                data: [
-                                    preparation.prepared.acceleration,
-                                    preparation.prepared.vmax
-                                ],
-
-                                backgroundColor:
-                                    "#f97316",
-
-                                borderRadius: 8
-                            }
-                        ]
-                    },
-
-                    options: getChartOptions(
-                        "Desempenho"
-                    )
+            activeUpgrades.forEach(id => {
+                const up = upgradesData.find(u => u.id === id);
+                if (up) {
+                    hp += up.hpGain;
+                    torque += up.torqueGain;
+                    accel += up.accelGain;
+                    cost += up.cost;
+                    reliability += up.reliability;
                 }
-            );
-    }
+            });
 
+            return {
+                hp,
+                torque: Number(torque.toFixed(1)),
+                accel: Number(Math.max(2.8, accel).toFixed(1)),
+                cost,
+                reliability: Math.max(30, reliability)
+            };
+        }
 
-    /* --------------------------------------------------------
-       GRÁFICO 4 - AVALIAÇÃO
-    -------------------------------------------------------- */
+        function updateTelemetry() {
+            const totals = calculateTotals();
+            
+            document.getElementById("teaser-hp").textContent = `${totals.hp} HP`;
+            document.getElementById("teaser-cost").textContent = `R$ ${totals.cost.toLocaleString()}`;
+            
+            document.getElementById("perf-hp").textContent = totals.hp;
+            document.getElementById("perf-hp-diff").textContent = `+${totals.hp - carsData[currentCarKey].hp}`;
+            document.getElementById("perf-torque").textContent = `${totals.torque} kgfm`;
+            document.getElementById("perf-torque-diff").textContent = `+${(totals.torque - carsData[currentCarKey].torque).toFixed(1)}`;
+            document.getElementById("perf-accel").textContent = `${totals.accel}s`;
+            
+            const relEl = document.getElementById("perf-reliability");
+            relEl.textContent = `${totals.reliability}%`;
+            relEl.className = `text-2xl font-extrabold ${totals.reliability < 60 ? 'text-red-500' : totals.reliability < 80 ? 'text-yellow-500' : 'text-green-500'}`;
 
-    const evaluationCanvas =
-        getChartCanvas(
-            "evaluationChart"
-        );
+            renderSafetyList();
+        }
 
-    if (evaluationCanvas) {
-
-        destroyChart("evaluation");
-
-        state.charts.evaluation =
-            new Chart(
-                evaluationCanvas.getContext("2d"),
-                {
-                    type: "radar",
-
-                    data: {
-
-                        labels: [
-                            "Desempenho",
-                            "Segurança",
-                            "Economia",
-                            "Custo-benefício"
-                        ],
-
-                        datasets: [{
-                            label:
-                                "Avaliação da preparação",
-
-                            data: [
-                                scores.desempenho,
-                                scores.seguranca,
-                                scores.economia,
-                                scores.custoBeneficio
-                            ],
-
-                            backgroundColor:
-                                "rgba(34, 197, 94, 0.18)",
-
-                            borderColor:
-                                "#22c55e",
-
-                            pointBackgroundColor:
-                                "#22c55e",
-
-                            pointBorderColor:
-                                "#ffffff",
-
-                            pointHoverBackgroundColor:
-                                "#ffffff",
-
-                            pointHoverBorderColor:
-                                "#22c55e"
-                        }]
-                    },
-
-                    options: {
-
-                        responsive: true,
-
-                        maintainAspectRatio: false,
-
-                        scales: {
-
-                            r: {
-
-                                min: 0,
-
-                                max: 10,
-
-                                ticks: {
-                                    stepSize: 2
-                                }
-                            }
+        function setupCharts() {
+            const ctxPower = document.getElementById("powerChart").getContext("2d");
+            powerChartInstance = new Chart(ctxPower, {
+                type: 'line',
+                data: {
+                    labels: ['2000', '3000', '4000', '5000', '6000', '7000'],
+                    datasets: [
+                        {
+                            label: 'Original',
+                            data: [120, 160, 200, 230, 210, 180],
+                            borderColor: '#71717a',
+                            tension: 0.4,
+                            borderWidth: 2
                         },
+                        {
+                            label: 'Preparado',
+                            data: [130, 180, 240, 290, 320, 300],
+                            borderColor: '#FF6B00',
+                            backgroundColor: 'rgba(255, 107, 0, 0.1)',
+                            fill: true,
+                            tension: 0.4,
+                            borderWidth: 3
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#a1a1aa', font: { size: 10 } } } },
+                    scales: {
+                        x: { grid: { color: '#222' }, ticks: { color: '#71717a' } },
+                        y: { grid: { color: '#222' }, ticks: { color: '#71717a' } }
+                    }
+                }
+            });
 
-                        plugins: {
-
-                            legend: {
-                                display: true
-                            }
+            const ctxRadar = document.getElementById("radarChart").getContext("2d");
+            radarChartInstance = new Chart(ctxRadar, {
+                type: 'radar',
+                data: {
+                    labels: ['Potência', 'Torque', 'Aceleração', 'Frenagem', 'Confiabilidade', 'Economia'],
+                    datasets: [
+                        {
+                            label: 'Original',
+                            data: [60, 60, 60, 60, 95, 80],
+                            borderColor: '#71717a',
+                            backgroundColor: 'rgba(113, 113, 122, 0.1)'
+                        },
+                        {
+                            label: 'Preparado',
+                            data: [90, 85, 95, 85, 75, 50],
+                            borderColor: '#FF6B00',
+                            backgroundColor: 'rgba(255, 107, 0, 0.2)'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: '#a1a1aa', font: { size: 10 } } } },
+                    scales: {
+                        r: {
+                            grid: { color: '#222' },
+                            angleLines: { color: '#222' },
+                            ticks: { display: false }
                         }
                     }
                 }
-            );
-    }
-}
-
-
-function getChartOptions(title) {
-
-    return {
-
-        responsive: true,
-
-        maintainAspectRatio: false,
-
-        plugins: {
-
-            legend: {
-                display: true
-            },
-
-            title: {
-                display: false,
-                text: title
-            }
-        },
-
-        scales: {
-
-            y: {
-                beginAtZero: true
-            }
-        },
-
-        animation: {
-            duration: 500
-        }
-    };
-}
-
-
-/* ============================================================
-   20. RESUMO FINAL
-============================================================ */
-
-function renderSummary() {
-
-    const car =
-        getCurrentCar();
-
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
-
-    const budget =
-        calculateBudget();
-
-    const scores =
-        calculateScores();
-
-    const risk =
-        calculateSafetyRisk();
-
-
-    setText(
-        "summaryVehicle",
-        car.nome
-    );
-
-    setText(
-        "summaryObjective",
-        getObjectiveLabel(
-            state.objective
-        )
-    );
-
-    setText(
-        "summaryBudget",
-        formatCurrency(
-            budget.budget
-        )
-    );
-
-    setText(
-        "summaryCost",
-        formatCurrency(
-            preparation.cost
-        )
-    );
-
-    setText(
-        "summaryRemaining",
-        formatCurrency(
-            budget.remaining
-        )
-    );
-
-
-    setText(
-        "summaryOriginalPower",
-        `${formatNumber(
-            preparation.original.hp,
-            0
-        )} HP`
-    );
-
-    setText(
-        "summaryPreparedPower",
-        `${formatNumber(
-            preparation.prepared.hp,
-            0
-        )} HP`
-    );
-
-    setText(
-        "summaryPowerGain",
-        `${
-            preparation.differences.hp >= 0
-                ? "+"
-                : ""
-        }${formatNumber(
-            preparation.differences.hp,
-            0
-        )} HP`
-    );
-
-
-    setText(
-        "summaryOriginalTorque",
-        `${formatNumber(
-            preparation.original.torque
-        )} kgfm`
-    );
-
-    setText(
-        "summaryPreparedTorque",
-        `${formatNumber(
-            preparation.prepared.torque
-        )} kgfm`
-    );
-
-    setText(
-        "summaryTorqueGain",
-        `${
-            preparation.differences.torque >= 0
-                ? "+"
-                : ""
-        }${formatNumber(
-            preparation.differences.torque
-        )} kgfm`
-    );
-
-
-    setText(
-        "summaryOriginalAcceleration",
-        `${formatNumber(
-            preparation.original.acceleration,
-            2
-        )} s`
-    );
-
-    setText(
-        "summaryPreparedAcceleration",
-        `${formatNumber(
-            preparation.prepared.acceleration,
-            2
-        )} s`
-    );
-
-
-    setText(
-        "summaryVmax",
-        `${formatNumber(
-            preparation.prepared.vmax,
-            0
-        )} km/h`
-    );
-
-    setText(
-        "summaryConsumption",
-        `${formatNumber(
-            preparation.prepared.consumption
-        )} km/l`
-    );
-
-    setText(
-        "summaryReliability",
-        `${formatNumber(
-            preparation.prepared.reliability,
-            0
-        )}%`
-    );
-
-    setText(
-        "summaryRisk",
-        risk.level
-    );
-
-
-    setText(
-        "summaryScores",
-        `${formatNumber(
-            scores.desempenho
-        )} / ${formatNumber(
-            scores.seguranca
-        )} / ${formatNumber(
-            scores.economia
-        )} / ${formatNumber(
-            scores.custoBeneficio
-        )}`
-    );
-
-
-    const modificationsContainer =
-        $("summaryModifications");
-
-    if (modificationsContainer) {
-
-        const selected =
-            getSelectedModifications();
-
-        if (selected.length === 0) {
-
-            modificationsContainer.innerHTML =
-                "<li>Nenhuma modificação selecionada.</li>";
-
-        } else {
-
-            modificationsContainer.innerHTML =
-                selected
-                    .map(
-                        mod =>
-                            `<li>✓ ${mod.nome}</li>`
-                    )
-                    .join("");
-        }
-    }
-}
-
-
-/* ============================================================
-   21. OBJETIVOS
-============================================================ */
-
-function getObjectiveLabel(objective) {
-
-    const labels = {
-
-        economia:
-            "Economia",
-
-        desempenho:
-            "Desempenho",
-
-        esportivo:
-            "Uso Esportivo"
-    };
-
-    return labels[objective] ||
-        "Desempenho";
-}
-
-
-/* ============================================================
-   22. PREPARAÇÃO AUTOMÁTICA
-============================================================ */
-
-function generateAutomaticPreparation() {
-
-    const budget =
-        calculateBudget();
-
-    if (budget.budget <= 0) {
-
-        showToast(
-            "Informe um orçamento válido antes de gerar a preparação automática.",
-            "warning"
-        );
-
-        const input =
-            $("budget");
-
-        if (input) {
-            input.focus();
+            });
         }
 
-        return;
-    }
+        function updateCharts() {
+            if (!powerChartInstance || !radarChartInstance) return;
+            const totals = calculateTotals();
+            const car = carsData[currentCarKey];
 
+            const hpMultiplier = totals.hp / car.hp;
+            powerChartInstance.data.datasets[0].data = [car.hp*0.5, car.hp*0.7, car.hp*0.9, car.hp, car.hp*0.9, car.hp*0.8];
+            powerChartInstance.data.datasets[1].data = [car.hp*0.55, car.hp*0.8, car.hp*1.05, totals.hp, totals.hp*0.95, totals.hp*0.85];
+            powerChartInstance.update();
 
-    /*
-        A preparação automática começa do zero.
-    */
-
-    state.selectedModifications = [];
-
-
-    const objective =
-        state.objective;
-
-
-    /*
-        Cada objetivo recebe uma ordem de prioridade.
-    */
-
-    let priority;
-
-    if (objective === "economia") {
-
-        priority = [
-            "remap",
-            "suspension",
-            "brakes",
-            "turbo",
-            "supercharger"
-        ];
-
-    } else if (objective === "esportivo") {
-
-        priority = [
-            "brakes",
-            "suspension",
-            "remap",
-            "turbo",
-            "supercharger"
-        ];
-
-    } else {
-
-        priority = [
-            "remap",
-            "turbo",
-            "brakes",
-            "suspension",
-            "supercharger"
-        ];
-    }
-
-
-    /*
-        Calcula uma pontuação de prioridade.
-
-        Quanto maior o peso do objetivo,
-        mais cedo a modificação será avaliada.
-    */
-
-    const sorted =
-        priority
-            .map((id, index) => {
-
-                const mod =
-                    modifications[id];
-
-                return {
-                    id,
-
-                    priority:
-                        mod.objetivoPeso[
-                            objective
-                        ] || 0,
-
-                    originalIndex:
-                        index
-                };
-            })
-            .sort(
-                (a, b) => {
-
-                    if (
-                        b.priority !==
-                        a.priority
-                    ) {
-
-                        return (
-                            b.priority -
-                            a.priority
-                        );
-                    }
-
-                    return (
-                        a.originalIndex -
-                        b.originalIndex
-                    );
-                }
-            );
-
-
-    /*
-        Estratégia:
-
-        1. Tenta adicionar modificações sem exceder orçamento.
-        2. Para desempenho/esportivo, procura preservar
-           modificações de segurança.
-        3. Para economia, evita adicionar modificações
-           de grande impacto se elas consumirem muito
-           do orçamento.
-    */
-
-    let currentCost = 0;
-
-
-    sorted.forEach(item => {
-
-        const mod =
-            modifications[item.id];
-
-        const newCost =
-            currentCost +
-            mod.preco;
-
-
-        if (newCost > budget.budget) {
-            return;
+            radarChartInstance.data.datasets[1].data = [
+                Math.min(100, hpMultiplier * 70),
+                Math.min(100, (totals.torque / car.torque) * 70),
+                Math.min(100, (car.accel / totals.accel) * 80),
+                activeUpgrades.includes('brakes') ? 95 : 60,
+                totals.reliability,
+                Math.max(30, 90 - (activeUpgrades.length * 10))
+            ];
+            radarChartInstance.update();
         }
 
+        function calculateBudget() {
+            const limit = parseFloat(document.getElementById("budget-input").value) || 15000;
+            const container = document.getElementById("budget-results");
+            container.innerHTML = "";
 
-        if (
-            objective === "economia" &&
-            (
-                item.id === "turbo" ||
-                item.id === "supercharger"
-            )
-        ) {
-
-            /*
-                Evita sobrealimentação automática
-                para o objetivo de economia.
-            */
-
-            return;
-        }
-
-
-        state.selectedModifications.push(
-            item.id
-        );
-
-        currentCost =
-            newCost;
-    });
-
-
-    /*
-        Para preparação esportiva/desempenho,
-        tenta garantir freios e suspensão
-        quando houver orçamento.
-    */
-
-    if (
-        objective !== "economia"
-    ) {
-
-        const safetyMods = [
-            "brakes",
-            "suspension"
-        ];
-
-        safetyMods.forEach(id => {
-
-            if (
-                hasModification(id)
-            ) {
+            const affordable = upgradesData.filter(u => u.cost <= limit);
+            
+            if (affordable.length === 0) {
+                container.innerHTML = `<div class="col-span-3 text-center py-12 text-gray-400">Nenhum upgrade disponível para este orçamento. Tente aumentar o valor.</div>`;
                 return;
             }
 
-            const mod =
-                modifications[id];
-
-            if (
-                currentCost +
-                mod.preco <=
-                budget.budget
-            ) {
-
-                state.selectedModifications.push(
-                    id
-                );
-
-                currentCost +=
-                    mod.preco;
-            }
-        });
-    }
-
-
-    /*
-        Caso nenhuma modificação caiba,
-        mantém a configuração original.
-    */
-
-    updateModificationVisualState();
-
-    updateSimulation();
-
-
-    state.automaticPreparation = {
-
-        objective,
-
-        budget:
-            budget.budget,
-
-        modifications:
-            [...state.selectedModifications],
-
-        cost:
-            currentCost
-    };
-
-
-    renderAutomaticPreparationMessage();
-
-
-    showToast(
-        "Preparação automática gerada com sucesso.",
-        "success"
-    );
-}
-
-
-function renderAutomaticPreparationMessage() {
-
-    const container =
-        $("automaticResult") ||
-        $("automaticPreparationResult");
-
-    if (!container) {
-        return;
-    }
-
-
-    const selected =
-        getSelectedModifications();
-
-    const objective =
-        getObjectiveLabel(
-            state.objective
-        );
-
-    const budget =
-        state.budget;
-
-
-    let reason;
-
-    if (state.objective === "economia") {
-
-        reason =
-            "Foram priorizadas alterações de menor impacto e melhor preservação de consumo, respeitando o orçamento.";
-
-    } else if (state.objective === "esportivo") {
-
-        reason =
-            "Foram priorizados desempenho, controle do veículo, freios e suspensão dentro do orçamento informado.";
-
-    } else {
-
-        reason =
-            "Foram priorizadas alterações capazes de aumentar desempenho e torque, buscando manter a configuração dentro do orçamento.";
-    }
-
-
-    container.innerHTML = `
-
-        <div class="automatic-result-card">
-
-            <h3>
-                Preparação automática gerada!
-            </h3>
-
-            <p>
-                <strong>Objetivo:</strong>
-                ${objective}
-            </p>
-
-            <p>
-                <strong>Orçamento:</strong>
-                ${formatCurrency(budget)}
-            </p>
-
-            <h4>
-                Modificações selecionadas:
-            </h4>
-
-            ${
-                selected.length
-                    ? `
-                        <ul>
-                            ${
-                                selected
-                                    .map(
-                                        mod =>
-                                            `<li>✓ ${mod.nome}</li>`
-                                    )
-                                    .join("")
-                            }
-                        </ul>
-                    `
-                    : `
-                        <p>
-                            Nenhuma modificação coube
-                            no orçamento informado.
-                        </p>
-                    `
-            }
-
-            <p>
-                ${reason}
-            </p>
-
-        </div>
-    `;
-}
-
-
-/* ============================================================
-   23. ATUALIZAÇÃO GERAL DA SIMULAÇÃO
-============================================================ */
-
-function updateSimulation() {
-
-    /*
-        Ordem importante:
-
-        1. Calcula preparação.
-        2. Calcula orçamento.
-        3. Renderiza resultados.
-        4. Calcula pontuação.
-        5. Atualiza gráficos.
-    */
-
-    calculatePreparation();
-
-    calculateBudget();
-
-    calculateScores();
-
-    renderComparison();
-
-    renderBudget();
-
-    renderCostDetails();
-
-    renderSafety();
-
-    renderRecommendations();
-
-    renderLegalization();
-
-    renderScores();
-
-    renderSummary();
-
-    renderCharts();
-}
-
-
-/* ============================================================
-   24. VALIDAÇÃO DO ORÇAMENTO
-============================================================ */
-
-function validateBudgetInput(showMessage = true) {
-
-    const input =
-        $("budget");
-
-    if (!input) {
-        return false;
-    }
-
-
-    let raw =
-        input.value
-            .trim();
-
-
-    if (!raw) {
-
-        if (showMessage) {
-
-            showToast(
-                "Informe um orçamento para continuar.",
-                "warning"
-            );
+            affordable.forEach(up => {
+                const card = document.createElement("div");
+                card.className = "bg-[#151515] border border-[#222] p-6 rounded-2xl space-y-4 flex flex-col justify-between";
+                card.innerHTML = `
+                    <div class="space-y-2">
+                        <span class="text-[10px] font-bold text-[#FF6B00] uppercase">Compatível com seu orçamento</span>
+                        <h4 class="text-base font-bold text-white">${up.name}</h4>
+                        <p class="text-xs text-gray-400">${up.desc}</p>
+                    </div>
+                    <div class="pt-4 border-t border-[#222] flex justify-between items-center">
+                        <span class="text-sm font-extrabold text-white">R$ ${up.cost.toLocaleString()}</span>
+                        <button onclick="addUpgradeFromBudget('${up.id}')" class="px-4 py-2 bg-[#FF6B00] hover:bg-[#e05e00] text-white text-xs font-bold rounded-xl transition-all">
+                            Selecionar na Simulação
+                        </button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
         }
 
-        return false;
-    }
-
-
-    raw =
-        raw
-            .replace(/[R$\s]/g, "")
-            .replace(/\./g, "")
-            .replace(",", ".");
-
-
-    const value =
-        Number(raw);
-
-
-    if (
-        !Number.isFinite(value) ||
-        value <= 0
-    ) {
-
-        if (showMessage) {
-
-            showToast(
-                "O orçamento deve ser um valor positivo.",
-                "warning"
-            );
-        }
-
-        return false;
-    }
-
-
-    state.budget =
-        value;
-
-    return true;
-}
-
-
-/* ============================================================
-   25. FORMATAÇÃO DO CAMPO DE ORÇAMENTO
-============================================================ */
-
-function formatBudgetInput() {
-
-    const input =
-        $("budget");
-
-    if (!input) {
-        return;
-    }
-
-
-    let raw =
-        input.value
-            .replace(/\D/g, "");
-
-
-    if (!raw) {
-        return;
-    }
-
-
-    const cents =
-        Number(raw);
-
-
-    const value =
-        cents / 100;
-
-
-    input.value =
-        value.toLocaleString(
-            "pt-BR",
-            {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2
+        function addUpgradeFromBudget(id) {
+            if (!activeUpgrades.includes(id)) {
+                activeUpgrades.push(id);
             }
-        );
-}
-
-
-/* ============================================================
-   26. SELEÇÃO DE VEÍCULO
-============================================================ */
-
-function handleVehicleChange(event) {
-
-    const value =
-        event.target.value;
-
-    if (!cars[value]) {
-
-        console.warn(
-            "Veículo não encontrado:",
-            value
-        );
-
-        return;
-    }
-
-
-    state.vehicleId =
-        value;
-
-
-    /*
-        A preparação anterior é mantida?
-        Não.
-
-        Trocar de veículo significa recalcular
-        a simulação sobre a nova base.
-    */
-
-    state.selectedModifications = [];
-
-    state.automaticPreparation = null;
-
-
-    updateModificationVisualState();
-
-    renderVehicle();
-
-    updateSimulation();
-
-
-    showToast(
-        `Veículo alterado para ${cars[value].nome}.`,
-        "info"
-    );
-}
-
-
-/* ============================================================
-   27. OBJETIVO
-============================================================ */
-
-function handleObjectiveChange(event) {
-
-    state.objective =
-        event.target.value;
-
-
-    updateSimulation();
-
-
-    showToast(
-        `Objetivo definido como ${getObjectiveLabel(
-            state.objective
-        )}.`,
-        "info"
-    );
-}
-
-
-/* ============================================================
-   28. SCROLL SUAVE
-============================================================ */
-
-function scrollToElement(id) {
-
-    const element =
-        $(id);
-
-    if (!element) {
-        return;
-    }
-
-    element.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-    });
-}
-
-
-/* ============================================================
-   29. MENU MOBILE
-============================================================ */
-
-function setupMobileMenu() {
-
-    const toggle =
-        $("menuToggle") ||
-        $("mobileMenuToggle");
-
-    const menu =
-        $("mainMenu") ||
-        $("navMenu");
-
-    if (!toggle || !menu) {
-        return;
-    }
-
-
-    toggle.addEventListener(
-        "click",
-        () => {
-
-            const opened =
-                menu.classList.toggle(
-                    "open"
-                );
-
-            toggle.setAttribute(
-                "aria-expanded",
-                String(opened)
-            );
+            switchTab('simulator');
+            updateTelemetry();
         }
-    );
 
+        function runSmartSetup() {
+            const carKey = document.getElementById("smart-car").value;
+            const goal = document.getElementById("smart-goal").value;
+            const budgetLimit = parseFloat(document.getElementById("smart-budget-limit").value);
 
-    menu
-        .querySelectorAll("a")
-        .forEach(link => {
+            currentCarKey = carKey;
+            const car = carsData[carKey];
+            
+            let selected = [];
+            let currentCost = 0;
 
-            link.addEventListener(
-                "click",
-                () => {
+            const priorityOrder = goal === 'performance' ? ['turbo', 'ecu', 'intercooler', 'brakes', 'exhaust', 'suspension'] :
+                                  goal === 'balanced' ? ['ecu', 'exhaust', 'brakes', 'suspension', 'intercooler', 'turbo'] :
+                                  ['ecu', 'exhaust', 'intercooler'];
 
-                    menu.classList.remove(
-                        "open"
-                    );
-
-                    toggle.setAttribute(
-                        "aria-expanded",
-                        "false"
-                    );
+            for (const id of priorityOrder) {
+                const up = upgradesData.find(u => u.id === id);
+                if (up && (currentCost + up.cost) <= budgetLimit) {
+                    selected.push(id);
+                    currentCost += up.cost;
                 }
-            );
-        });
-}
-
-
-/* ============================================================
-   30. IMPRESSÃO
-============================================================ */
-
-function printReport() {
-
-    /*
-        Atualiza os dados antes de imprimir.
-    */
-
-    updateSimulation();
-
-    window.print();
-}
-
-
-/* ============================================================
-   31. PREPARAÇÃO DO PDF
-============================================================ */
-
-function getJsPDF() {
-
-    if (
-        typeof window.jspdf !==
-        "undefined" &&
-        window.jspdf.jsPDF
-    ) {
-
-        return window.jspdf.jsPDF;
-    }
-
-
-    if (
-        typeof window.jsPDF !==
-        "undefined"
-    ) {
-
-        return window.jsPDF;
-    }
-
-
-    return null;
-}
-
-
-/* ============================================================
-   32. FUNÇÕES AUXILIARES PARA PDF
-============================================================ */
-
-function pdfText(
-    doc,
-    text,
-    x,
-    y,
-    options = {}
-) {
-
-    const {
-        size = 10,
-        color = [40, 40, 40],
-        bold = false,
-        align = "left"
-    } = options;
-
-
-    doc.setFontSize(size);
-
-    doc.setTextColor(
-        color[0],
-        color[1],
-        color[2]
-    );
-
-    doc.setFont(
-        "helvetica",
-        bold
-            ? "bold"
-            : "normal"
-    );
-
-
-    doc.text(
-        String(text),
-        x,
-        y,
-        {
-            align
-        }
-    );
-}
-
-
-function pdfTitle(
-    doc,
-    title,
-    subtitle
-) {
-
-    pdfText(
-        doc,
-        title,
-        20,
-        25,
-        {
-            size: 20,
-            color: [15, 23, 42],
-            bold: true
-        }
-    );
-
-
-    if (subtitle) {
-
-        pdfText(
-            doc,
-            subtitle,
-            20,
-            34,
-            {
-                size: 10,
-                color: [100, 116, 139]
             }
-        );
-    }
 
+            activeUpgrades = selected;
+            updateTelemetry();
 
-    doc.setDrawColor(
-        34,
-        197,
-        94
-    );
-
-    doc.setLineWidth(1);
-
-    doc.line(
-        20,
-        40,
-        190,
-        40
-    );
-}
-
-
-function pdfWrappedText(
-    doc,
-    text,
-    x,
-    y,
-    maxWidth,
-    options = {}
-) {
-
-    const {
-        size = 10,
-        color = [50, 50, 50],
-        lineHeight = 5
-    } = options;
-
-
-    doc.setFontSize(size);
-
-    doc.setTextColor(
-        color[0],
-        color[1],
-        color[2]
-    );
-
-    doc.setFont(
-        "helvetica",
-        "normal"
-    );
-
-
-    const lines =
-        doc.splitTextToSize(
-            String(text),
-            maxWidth
-        );
-
-
-    doc.text(
-        lines,
-        x,
-        y
-    );
-
-
-    return (
-        y +
-        lines.length *
-        lineHeight
-    );
-}
-
-
-function pdfTable(
-    doc,
-    headers,
-    rows,
-    startY,
-    columnWidths
-) {
-
-    let y =
-        startY;
-
-    const rowHeight =
-        8;
-
-    const startX =
-        20;
-
-
-    /*
-        Cabeçalho.
-    */
-
-    doc.setFillColor(
-        15,
-        23,
-        42
-    );
-
-    doc.setTextColor(
-        255,
-        255,
-        255
-    );
-
-    doc.setFont(
-        "helvetica",
-        "bold"
-    );
-
-    doc.setFontSize(8);
-
-
-    let x =
-        startX;
-
-
-    headers.forEach(
-        (header, index) => {
-
-            doc.rect(
-                x,
-                y,
-                columnWidths[index],
-                rowHeight,
-                "F"
-            );
-
-            doc.text(
-                String(header),
-                x + 2,
-                y + 5
-            );
-
-            x +=
-                columnWidths[index];
+            const output = document.getElementById("smart-output");
+            output.classList.remove("hidden");
+            output.innerHTML = `
+                <div class="space-y-6">
+                    <div class="flex justify-between items-center border-b border-[#222] pb-4">
+                        <div>
+                            <span class="text-xs font-bold text-[#FF6B00] uppercase">Configuração IA Gerada</span>
+                            <h3 class="text-xl font-extrabold text-white">${car.name}</h3>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-gray-400">Investimento Total:</span>
+                            <p class="text-lg font-extrabold text-white">R$ ${currentCost.toLocaleString()}</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="bg-[#090909] p-4 rounded-xl border border-[#222]">
+                            <span class="text-[10px] uppercase text-gray-500 font-semibold">Nova Potência</span>
+                            <p class="text-lg font-extrabold text-[#FF6B00]">${calculateTotals().hp} HP</p>
+                        </div>
+                        <div class="bg-[#090909] p-4 rounded-xl border border-[#222]">
+                            <span class="text-[10px] uppercase text-gray-500 font-semibold">0–100 km/h</span>
+                            <p class="text-lg font-extrabold text-white">${calculateTotals().accel}s</p>
+                        </div>
+                        <div class="bg-[#090909] p-4 rounded-xl border border-[#222]">
+                            <span class="text-[10px] uppercase text-gray-500 font-semibold">Modificações</span>
+                            <p class="text-lg font-extrabold text-white">${selected.length} itens</p>
+                        </div>
+                    </div>
+                    <button onclick="switchTab('simulator')" class="px-6 py-3 bg-[#FF6B00] hover:bg-[#e05e00] text-white font-bold text-xs rounded-xl transition-all">
+                        Ver na Tela de Simulador ➔
+                    </button>
+                </div>
+            `;
         }
-    );
 
+        function renderSafetyList() {
+            const container = document.getElementById("safety-list");
+            container.innerHTML = "";
 
-    y +=
-        rowHeight;
-
-
-    /*
-        Linhas.
-    */
-
-    rows.forEach(
-        row => {
-
-            x =
-                startX;
-
-
-            doc.setTextColor(
-                40,
-                40,
-                40
-            );
-
-            doc.setFont(
-                "helvetica",
-                "normal"
-            );
-
-
-            row.forEach(
-                (cell, index) => {
-
-                    doc.setDrawColor(
-                        210,
-                        214,
-                        220
-                    );
-
-                    doc.rect(
-                        x,
-                        y,
-                        columnWidths[index],
-                        rowHeight
-                    );
-
-                    const text =
-                        String(cell);
-
-                    const lines =
-                        doc.splitTextToSize(
-                            text,
-                            columnWidths[index] - 4
-                        );
-
-
-                    doc.text(
-                        lines.slice(0, 2),
-                        x + 2,
-                        y + 4
-                    );
-
-
-                    x +=
-                        columnWidths[index];
-                }
-            );
-
-
-            y +=
-                rowHeight;
-        }
-    );
-
-
-    return y;
-}
-
-
-function addPdfFooter(
-    doc,
-    pageNumber
-) {
-
-    const pageHeight =
-        doc.internal.pageSize.getHeight();
-
-    doc.setFontSize(8);
-
-    doc.setTextColor(
-        120,
-        120,
-        120
-    );
-
-    doc.text(
-        "Simulador de Preparação Automotiva — Projeto acadêmico — 3º DS",
-        20,
-        pageHeight - 10
-    );
-
-    doc.text(
-        String(pageNumber),
-        190,
-        pageHeight - 10,
-        {
-            align: "right"
-        }
-    );
-}
-
-
-/* ============================================================
-   33. GERAÇÃO DO PDF
-============================================================ */
-
-function generatePDF() {
-
-    /*
-        Atualiza tudo antes da geração.
-    */
-
-    updateSimulation();
-
-
-    const JsPDF =
-        getJsPDF();
-
-
-    if (!JsPDF) {
-
-        showToast(
-            "A biblioteca jsPDF não foi carregada. Verifique o CDN no HTML.",
-            "error"
-        );
-
-        return;
-    }
-
-
-    const car =
-        getCurrentCar();
-
-    const preparation =
-        state.preparation ||
-        calculatePreparation();
-
-    const budget =
-        calculateBudget();
-
-    const scores =
-        calculateScores();
-
-    const safety =
-        calculateSafety();
-
-    const risk =
-        safety.risk;
-
-    const recommendations =
-        generateRecommendations();
-
-    const legalWarnings =
-        generateLegalizationWarnings();
-
-    const selected =
-        getSelectedModifications();
-
-
-    /*
-        Criação do documento.
-    */
-
-    const doc =
-        new JsPDF({
-            orientation: "portrait",
-            unit: "mm",
-            format: "a4"
-        });
-
-
-    const today =
-        new Date();
-
-
-    const dateString =
-        today.toLocaleDateString(
-            "pt-BR"
-        );
-
-
-    let page =
-        1;
-
-
-    /* ========================================================
-       PÁGINA 1 - CAPA
-    ======================================================== */
-
-    doc.setFillColor(
-        15,
-        23,
-        42
-    );
-
-    doc.rect(
-        0,
-        0,
-        210,
-        297,
-        "F"
-    );
-
-
-    doc.setFillColor(
-        34,
-        197,
-        94
-    );
-
-    doc.rect(
-        0,
-        0,
-        210,
-        8,
-        "F"
-    );
-
-
-    pdfText(
-        doc,
-        "SIMULADOR DE",
-        20,
-        70,
-        {
-            size: 18,
-            color: [148, 163, 184],
-            bold: true
-        }
-    );
-
-
-    pdfText(
-        doc,
-        "PREPARAÇÃO",
-        20,
-        88,
-        {
-            size: 30,
-            color: [255, 255, 255],
-            bold: true
-        }
-    );
-
-
-    pdfText(
-        doc,
-        "AUTOMOTIVA",
-        20,
-        110,
-        {
-            size: 30,
-            color: [34, 197, 94],
-            bold: true
-        }
-    );
-
-
-    pdfText(
-        doc,
-        "Projeto acadêmico",
-        20,
-        135,
-        {
-            size: 12,
-            color: [203, 213, 225]
-        }
-    );
-
-
-    pdfText(
-        doc,
-        "Aluno: Arthur Moreira Ribeiro",
-        20,
-        150,
-        {
-            size: 11,
-            color: [255, 255, 255]
-        }
-    );
-
-
-    pdfText(
-        doc,
-        "Turma: 3º DS",
-        20,
-        158,
-        {
-            size: 11,
-            color: [255, 255, 255]
-        }
-    );
-
-
-    pdfText(
-        doc,
-        `Veículo: ${car.nome}`,
-        20,
-        177,
-        {
-            size: 12,
-            color: [255, 255, 255],
-            bold: true
-        }
-    );
-
-
-    pdfText(
-        doc,
-        `Objetivo: ${getObjectiveLabel(
-            state.objective
-        )}`,
-        20,
-        187,
-        {
-            size: 12,
-            color: [255, 255, 255]
-        }
-    );
-
-
-    pdfText(
-        doc,
-        `Data da geração: ${dateString}`,
-        20,
-        202,
-        {
-            size: 10,
-            color: [148, 163, 184]
-        }
-    );
-
-
-    pdfText(
-        doc,
-        "Os valores apresentados são estimativas para fins educacionais.",
-        20,
-        260,
-        {
-            size: 9,
-            color: [148, 163, 184]
-        }
-    );
-
-
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       PÁGINA 2 - DADOS DO VEÍCULO
-    ======================================================== */
-
-    doc.addPage();
-
-    page++;
-
-    pdfTitle(
-        doc,
-        "Dados do veículo",
-        "Configuração original"
-    );
-
-
-    const vehicleRows = [
-
-        [
-            "Modelo",
-            car.nome
-        ],
-
-        [
-            "Potência",
-            `${formatNumber(
-                car.hp,
-                0
-            )} HP`
-        ],
-
-        [
-            "Torque",
-            `${formatNumber(
-                car.torque
-            )} kgfm`
-        ],
-
-        [
-            "0–100 km/h",
-            `${formatNumber(
-                car.aceleracao,
-                2
-            )} s`
-        ],
-
-        [
-            "Velocidade máxima",
-            `${formatNumber(
-                car.vmax,
-                0
-            )} km/h`
-        ],
-
-        [
-            "Consumo",
-            `${formatNumber(
-                car.consumo
-            )} km/l`
-        ],
-
-        [
-            "Confiabilidade",
-            `${formatNumber(
-                car.confiabilidade,
-                0
-            )}%`
-        ]
-    ];
-
-
-    pdfTable(
-        doc,
-        [
-            "Parâmetro",
-            "Valor"
-        ],
-        vehicleRows,
-        50,
-        [
-            75,
-            105
-        ]
-    );
-
-
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       PÁGINA 3 - MODIFICAÇÕES
-    ======================================================== */
-
-    doc.addPage();
-
-    page++;
-
-    pdfTitle(
-        doc,
-        "Modificações",
-        "Itens selecionados na preparação"
-    );
-
-
-    let modificationRows;
-
-
-    if (selected.length === 0) {
-
-        modificationRows = [
-            [
-                "Nenhuma modificação",
-                "Configuração original",
-                "R$ 0,00"
-            ]
-        ];
-
-    } else {
-
-        modificationRows =
-            selected.map(
-                mod => [
-                    mod.nome,
-                    mod.descricao,
-                    formatCurrency(
-                        mod.preco
-                    )
-                ]
-            );
-    }
-
-
-    pdfTable(
-        doc,
-        [
-            "Modificação",
-            "Descrição",
-            "Custo"
-        ],
-        modificationRows,
-        50,
-        [
-            45,
-            100,
-            25
-        ]
-    );
-
-
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       PÁGINA 4 - COMPARAÇÃO
-    ======================================================== */
-
-    doc.addPage();
-
-    page++;
-
-    pdfTitle(
-        doc,
-        "Comparação",
-        "Original x preparado"
-    );
-
-
-    const comparisonRows = [
-
-        [
-            "Potência",
-            `${formatNumber(
-                preparation.original.hp,
-                0
-            )} HP`,
-            `${formatNumber(
-                preparation.prepared.hp,
-                0
-            )} HP`,
-            `${preparation.differences.hp >= 0 ? "+" : ""}${formatNumber(
-                preparation.differences.hp,
-                0
-            )} HP`
-        ],
-
-        [
-            "Torque",
-            `${formatNumber(
-                preparation.original.torque
-            )} kgfm`,
-            `${formatNumber(
-                preparation.prepared.torque
-            )} kgfm`,
-            `${preparation.differences.torque >= 0 ? "+" : ""}${formatNumber(
-                preparation.differences.torque
-            )} kgfm`
-        ],
-
-        [
-            "0–100 km/h",
-            `${formatNumber(
-                preparation.original.acceleration,
-                2
-            )} s`,
-            `${formatNumber(
-                preparation.prepared.acceleration,
-                2
-            )} s`,
-            `${preparation.differences.acceleration > 0 ? "+" : ""}${formatNumber(
-                preparation.differences.acceleration,
-                2
-            )} s`
-        ],
-
-        [
-            "Velocidade máxima",
-            `${formatNumber(
-                preparation.original.vmax,
-                0
-            )} km/h`,
-            `${formatNumber(
-                preparation.prepared.vmax,
-                0
-            )} km/h`,
-            `${preparation.differences.vmax >= 0 ? "+" : ""}${formatNumber(
-                preparation.differences.vmax,
-                0
-            )} km/h`
-        ],
-
-        [
-            "Consumo",
-            `${formatNumber(
-                preparation.original.consumption
-            )} km/l`,
-            `${formatNumber(
-                preparation.prepared.consumption
-            )} km/l`,
-            `${preparation.differences.consumption > 0 ? "+" : ""}${formatNumber(
-                preparation.differences.consumption
-            )} km/l`
-        ],
-
-        [
-            "Confiabilidade",
-            `${formatNumber(
-                preparation.original.reliability,
-                0
-            )}%`,
-            `${formatNumber(
-                preparation.prepared.reliability,
-                0
-            )}%`,
-            `${preparation.differences.reliability > 0 ? "+" : ""}${formatNumber(
-                preparation.differences.reliability,
-                0
-            )}%`
-        ]
-    ];
-
-
-    pdfTable(
-        doc,
-        [
-            "Parâmetro",
-            "Original",
-            "Preparado",
-            "Diferença"
-        ],
-        comparisonRows,
-        50,
-        [
-            55,
-            40,
-            40,
-            35
-        ]
-    );
-
-
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       PÁGINA 5 - FINANCEIRO
-    ======================================================== */
-
-    doc.addPage();
-
-    page++;
-
-    pdfTitle(
-        doc,
-        "Resumo financeiro",
-        "Orçamento e custo da preparação"
-    );
-
-
-    const budgetRows = [
-
-        [
-            "Orçamento disponível",
-            formatCurrency(
-                budget.budget
-            )
-        ],
-
-        [
-            "Custo total",
-            formatCurrency(
-                budget.cost
-            )
-        ],
-
-        [
-            "Valor restante",
-            formatCurrency(
-                budget.remaining
-            )
-        ],
-
-        [
-            "Percentual utilizado",
-            formatPercent(
-                budget.percentage
-            )
-        ],
-
-        [
-            "Status",
-            budget.exceeded
-                ? "Orçamento excedido"
-                : budget.budget > 0
-                    ? "Dentro do orçamento"
-                    : "Orçamento não informado"
-        ]
-    ];
-
-
-    pdfTable(
-        doc,
-        [
-            "Item",
-            "Valor"
-        ],
-        budgetRows,
-        50,
-        [
-            90,
-            80
-        ]
-    );
-
-
-    pdfText(
-        doc,
-        "Detalhamento dos custos",
-        20,
-        120,
-        {
-            size: 13,
-            bold: true,
-            color: [15, 23, 42]
-        }
-    );
-
-
-    if (selected.length > 0) {
-
-        pdfTable(
-            doc,
-            [
-                "Modificação",
-                "Custo"
-            ],
-            selected.map(
-                mod => [
-                    mod.nome,
-                    formatCurrency(
-                        mod.preco
-                    )
-                ]
-            ),
-            130,
-            [
-                120,
-                50
-            ]
-        );
-
-    } else {
-
-        pdfText(
-            doc,
-            "Nenhuma modificação selecionada.",
-            20,
-            132,
-            {
-                size: 10
+            if (activeUpgrades.length === 0) {
+                container.innerHTML = `<div class="col-span-2 text-center py-12 text-gray-400">Nenhuma modificação aplicada. O veículo encontra-se totalmente original de fábrica.</div>`;
+                return;
             }
-        );
-    }
 
+            activeUpgrades.forEach(id => {
+                const up = upgradesData.find(u => u.id === id);
+                if (!up) return;
 
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       PÁGINA 6 - SEGURANÇA
-    ======================================================== */
-
-    doc.addPage();
-
-    page++;
-
-    pdfTitle(
-        doc,
-        "Segurança e legalização",
-        "Avaliação da configuração"
-    );
-
-
-    pdfText(
-        doc,
-        `Nível de risco: ${risk.level}`,
-        20,
-        55,
-        {
-            size: 13,
-            bold: true,
-            color:
-                risk.level === "Baixo"
-                    ? [22, 163, 74]
-                    : risk.level === "Médio"
-                        ? [217, 119, 6]
-                        : [220, 38, 38]
+                const card = document.createElement("div");
+                card.className = "bg-[#151515] border border-[#222] p-6 rounded-2xl space-y-3";
+                card.innerHTML = `
+                    <div class="flex justify-between items-center">
+                        <h4 class="text-sm font-bold text-white">${up.name}</h4>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-bold ${
+                            up.risk === 'Alto' ? 'bg-red-500/10 text-red-500 border border-red-500/30' :
+                            up.risk === 'Médio' ? 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/30' :
+                            'bg-green-500/10 text-green-500 border border-green-500/30'
+                        }">Risco ${up.risk}</span>
+                    </div>
+                    <p class="text-xs text-gray-400"><strong class="text-white">Conformidade Legal (Brasil):</strong> ${up.legal}</p>
+                `;
+                container.appendChild(card);
+            });
         }
-    );
 
+        function updateReportData() {
+            const car = carsData[currentCarKey];
+            const totals = calculateTotals();
 
-    let y = 68;
+            document.getElementById("report-car-name").textContent = car.name;
+            document.getElementById("report-car-details").textContent = car.specs;
+            document.getElementById("report-hp").textContent = `${totals.hp} HP (+${totals.hp - car.hp})`;
+            document.getElementById("report-torque").textContent = `${totals.torque} kgfm (+${(totals.torque - car.torque).toFixed(1)})`;
+            document.getElementById("report-accel").textContent = `${totals.accel}s`;
+            document.getElementById("report-cost").textContent = `R$ ${totals.cost.toLocaleString()}`;
 
+            const list = document.getElementById("report-upgrades-list");
+            list.innerHTML = "";
 
-    y =
-        pdfWrappedText(
-            doc,
-            risk.description,
-            20,
-            y,
-            170,
-            {
-                size: 10
+            if (activeUpgrades.length === 0) {
+                list.innerHTML = `<p class="text-xs text-gray-500">Nenhuma modificação selecionada.</p>`;
+                return;
             }
-        );
 
-
-    y += 10;
-
-
-    pdfText(
-        doc,
-        "Recomendações",
-        20,
-        y,
-        {
-            size: 13,
-            bold: true,
-            color: [15, 23, 42]
+            activeUpgrades.forEach(id => {
+                const up = upgradesData.find(u => u.id === id);
+                const item = document.createElement("div");
+                item.className = "flex justify-between text-xs py-2 border-b border-[#222]";
+                item.innerHTML = `<span class="text-gray-300">• ${up.name}</span> <span class="font-bold text-[#FF6B00]">R$ ${up.cost.toLocaleString()}</span>`;
+                list.appendChild(item);
+            });
         }
-    );
 
-
-    y += 8;
-
-
-    recommendations
-        .slice(0, 6)
-        .forEach(
-            rec => {
-
-                y =
-                    pdfWrappedText(
-                        doc,
-                        `• ${rec.title}: ${rec.text}`,
-                        22,
-                        y,
-                        165,
-                        {
-                            size: 9,
-                            lineHeight: 4.5
-                        }
-                    );
-
-                y += 3;
-            }
-        );
-
-
-    y += 6;
-
-
-    pdfText(
-        doc,
-        "Legalização",
-        20,
-        y,
-        {
-            size: 13,
-            bold: true,
-            color: [15, 23, 42]
+        function exportReportPDF() {
+            const element = document.getElementById("pdf-container");
+            const car = carsData[currentCarKey];
+            const opt = {
+                margin:       10,
+                filename:     `AutoForge_${car.name.replace(/\s+/g, '_')}_Relatorio.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true, backgroundColor: '#151515' },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+            html2pdf().from(element).set(opt).save();
         }
-    );
 
-
-    y += 8;
-
-
-    legalWarnings
-        .slice(0, 5)
-        .forEach(
-            warning => {
-
-                y =
-                    pdfWrappedText(
-                        doc,
-                        `• ${warning.text}`,
-                        22,
-                        y,
-                        165,
-                        {
-                            size: 9,
-                            lineHeight: 4.5
-                        }
-                    );
-
-                y += 3;
-            }
-        );
-
-
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       PÁGINA 7 - PONTUAÇÃO
-    ======================================================== */
-
-    doc.addPage();
-
-    page++;
-
-    pdfTitle(
-        doc,
-        "Pontuação",
-        "Avaliação dinâmica da preparação"
-    );
-
-
-    const scoreRows = [
-
-        [
-            "Desempenho",
-            `${formatNumber(
-                scores.desempenho
-            )}/10`
-        ],
-
-        [
-            "Segurança",
-            `${formatNumber(
-                scores.seguranca
-            )}/10`
-        ],
-
-        [
-            "Economia",
-            `${formatNumber(
-                scores.economia
-            )}/10`
-        ],
-
-        [
-            "Custo-benefício",
-            `${formatNumber(
-                scores.custoBeneficio
-            )}/10`
-        ]
-    ];
-
-
-    pdfTable(
-        doc,
-        [
-            "Categoria",
-            "Nota"
-        ],
-        scoreRows,
-        55,
-        [
-            120,
-            50
-        ]
-    );
-
-
-    /*
-        Barras visuais.
-    */
-
-    let barY =
-        110;
-
-
-    scoreRows.forEach(
-        ([label, value]) => {
-
-            const score =
-                Number(
-                    String(value)
-                        .replace(",", ".")
-                        .replace("/10", "")
-                );
-
-
-            pdfText(
-                doc,
-                label,
-                20,
-                barY,
-                {
-                    size: 9,
-                    bold: true
-                }
-            );
-
-
-            doc.setFillColor(
-                226,
-                232,
-                240
-            );
-
-            doc.roundedRect(
-                20,
-                barY + 3,
-                150,
-                6,
-                2,
-                2,
-                "F"
-            );
-
-
-            doc.setFillColor(
-                34,
-                197,
-                94
-            );
-
-            doc.roundedRect(
-                20,
-                barY + 3,
-                150 * (
-                    clamp(
-                        score,
-                        0,
-                        10
-                    ) / 10
-                ),
-                6,
-                2,
-                2,
-                "F"
-            );
-
-
-            barY += 22;
+        function resetSimulation() {
+            activeUpgrades = [];
+            renderUpgradesList();
+            updateTelemetry();
+            alert("Simulação reiniciada com sucesso!");
         }
-    );
 
-
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       PÁGINA FINAL - OBSERVAÇÃO
-    ======================================================== */
-
-    doc.addPage();
-
-    page++;
-
-    pdfTitle(
-        doc,
-        "Observação",
-        "Limitações do simulador"
-    );
-
-
-    const observation =
-        "Este relatório foi gerado pelo Simulador de Preparação Automotiva para fins educacionais. Os valores apresentados são estimativas e não representam garantia de desempenho, consumo, confiabilidade ou segurança. Os resultados reais dependem do veículo, peças utilizadas, instalação, manutenção, combustível, condições de uso e configuração.";
-
-
-    pdfWrappedText(
-        doc,
-        observation,
-        20,
-        60,
-        170,
-        {
-            size: 11,
-            lineHeight: 6
-        }
-    );
-
-
-    pdfWrappedText(
-        doc,
-        "Os requisitos de regularização podem variar conforme a legislação aplicável. Consulte os órgãos competentes e profissionais habilitados.",
-        20,
-        110,
-        170,
-        {
-            size: 11,
-            lineHeight: 6
-        }
-    );
-
-
-    pdfWrappedText(
-        doc,
-        "Este projeto foi desenvolvido como uma aplicação acadêmica utilizando HTML5, CSS3 e JavaScript.",
-        20,
-        160,
-        170,
-        {
-            size: 10,
-            color: [80, 80, 80],
-            lineHeight: 5
-        }
-    );
-
-
-    addPdfFooter(
-        doc,
-        page
-    );
-
-
-    /* ========================================================
-       DOWNLOAD
-    ======================================================== */
-
-    const fileName =
-        `relatorio-preparacao-${sanitizeFileName(
-            car.nome
-        )}.pdf`;
-
-
-    try {
-
-        doc.save(
-            fileName
-        );
-
-        showToast(
-            "Relatório gerado com sucesso.",
-            "success"
-        );
-
-    } catch (error) {
-
-        console.error(
-            "Erro ao gerar PDF:",
-            error
-        );
-
-        showToast(
-            "Não foi possível gerar o PDF.",
-            "error"
-        );
-    }
-}
-
-
-/* ============================================================
-   34. RESET
-============================================================ */
-
-function resetSimulation() {
-
-    const confirmed =
-        window.confirm(
-            "Tem certeza que deseja apagar a configuração atual?"
-        );
-
-
-    if (!confirmed) {
-        return;
-    }
-
-
-    state.vehicleId =
-        "gti";
-
-    state.budget =
-        0;
-
-    state.objective =
-        "desempenho";
-
-    state.selectedModifications =
-        [];
-
-    state.preparation =
-        null;
-
-    state.automaticPreparation =
-        null;
-
-
-    /*
-        Restaurar select de veículo.
-    */
-
-    const vehicleSelect =
-        $("vehicleSelect") ||
-        $("vehicle");
-
-    if (vehicleSelect) {
-
-        vehicleSelect.value =
-            "gti";
-    }
-
-
-    /*
-        Restaurar orçamento.
-    */
-
-    const budgetInput =
-        $("budget");
-
-    if (budgetInput) {
-
-        budgetInput.value =
-            "";
-    }
-
-
-    /*
-        Restaurar objetivo.
-    */
-
-    const objectiveSelect =
-        $("objective");
-
-    if (objectiveSelect) {
-
-        objectiveSelect.value =
-            "desempenho";
-    }
-
-
-    /*
-        Desmarcar radio/checkboxes relacionados.
-    */
-
-    document
-        .querySelectorAll(
-            'input[type="checkbox"][data-modification], input[name="modification"]'
-        )
-        .forEach(
-            input => {
-                input.checked = false;
-            }
-        );
-
-
-    updateModificationVisualState();
-
-    renderVehicle();
-
-    updateSimulation();
-
-    renderAutomaticPreparationMessage();
-
-
-    showToast(
-        "A simulação foi restaurada ao estado inicial.",
-        "success"
-    );
-}
-
-
-/* ============================================================
-   35. CONFIGURAÇÃO DE EVENTOS
-============================================================ */
-
-function setupEvents() {
-
-    /*
-        Veículo.
-    */
-
-    const vehicleSelect =
-        $("vehicleSelect") ||
-        $("vehicle");
-
-    if (vehicleSelect) {
-
-        vehicleSelect.addEventListener(
-            "change",
-            handleVehicleChange
-        );
-    }
-
-
-    /*
-        Objetivo.
-    */
-
-    const objectiveSelect =
-        $("objective");
-
-    if (objectiveSelect) {
-
-        objectiveSelect.addEventListener(
-            "change",
-            handleObjectiveChange
-        );
-    }
-
-
-    /*
-        Orçamento.
-    */
-
-    const budgetInput =
-        $("budget");
-
-    if (budgetInput) {
-
-        budgetInput.addEventListener(
-            "input",
-            () => {
-
-                /*
-                    Atualiza imediatamente,
-                    mas não bloqueia a digitação.
-                */
-
-                let raw =
-                    budgetInput.value
-                        .replace(/[^\d,.-]/g, "");
-
-                budgetInput.value =
-                    raw;
-
-                updateSimulation();
-            }
-        );
-
-
-        budgetInput.addEventListener(
-            "blur",
-            () => {
-
-                if (
-                    budgetInput.value.trim()
-                ) {
-
-                    /*
-                        Conversão amigável para
-                        formato brasileiro.
-                    */
-
-                    let raw =
-                        budgetInput.value
-                            .replace(/[R$\s]/g, "")
-                            .replace(/\./g, "")
-                            .replace(",", ".");
-
-                    const value =
-                        Number(raw);
-
-                    if (
-                        Number.isFinite(value) &&
-                        value > 0
-                    ) {
-
-                        budgetInput.value =
-                            value.toLocaleString(
-                                "pt-BR",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }
-                            );
-
-                        state.budget =
-                            value;
-
-                    } else {
-
-                        budgetInput.value =
-                            "";
-                    }
-                }
-
-                updateSimulation();
-            }
-        );
-    }
-
-
-    /*
-        Preparação automática.
-    */
-
-    const automaticButton =
-        $("generateAutomatic") ||
-        $("automaticPreparationButton") ||
-        $("generateAutomaticPreparation");
-
-
-    if (automaticButton) {
-
-        automaticButton.addEventListener(
-            "click",
-            generateAutomaticPreparation
-        );
-    }
-
-
-    /*
-        PDF.
-    */
-
-    const pdfButton =
-        $("generatePDF") ||
-        $("generatePdfButton") ||
-        $("pdfButton");
-
-
-    if (pdfButton) {
-
-        pdfButton.addEventListener(
-            "click",
-            () => {
-
-                if (
-                    !validateBudgetInput(
-                        true
-                    )
-                ) {
-
-                    return;
-                }
-
-                generatePDF();
-            }
-        );
-    }
-
-
-    /*
-        Impressão.
-    */
-
-    const printButton =
-        $("printReport") ||
-        $("printButton");
-
-
-    if (printButton) {
-
-        printButton.addEventListener(
-            "click",
-            printReport
-        );
-    }
-
-
-    /*
-        Reset.
-    */
-
-    const resetButton =
-        $("resetSimulation") ||
-        $("resetButton");
-
-
-    if (resetButton) {
-
-        resetButton.addEventListener(
-            "click",
-            resetSimulation
-        );
-    }
-
-
-    /*
-        Botão "Começar Simulação".
-    */
-
-    const startButton =
-        $("startSimulation") ||
-        $("startButton");
-
-
-    if (startButton) {
-
-        startButton.addEventListener(
-            "click",
-            () => {
-
-                scrollToElement(
-                    "simulator"
-                );
-
-            }
-        );
-    }
-
-
-    /*
-        Links internos.
-    */
-
-    document
-        .querySelectorAll(
-            'a[href^="#"]'
-        )
-        .forEach(
-            link => {
-
-                link.addEventListener(
-                    "click",
-                    event => {
-
-                        const targetId =
-                            link
-                                .getAttribute("href")
-                                .substring(1);
-
-                        const target =
-                            $(targetId);
-
-                        if (!target) {
-                            return;
-                        }
-
-                        event.preventDefault();
-
-                        target.scrollIntoView({
-                            behavior: "smooth",
-                            block: "start"
-                        });
-                    }
-                );
-            }
-        );
-}
-
-
-/* ============================================================
-   36. INICIALIZAÇÃO
-============================================================ */
-
-function initializeApp() {
-
-    console.log(
-        "Inicializando Simulador de Preparação Automotiva..."
-    );
-
-
-    /*
-        Monta os cards.
-    */
-
-    buildModificationCards();
-
-
-    /*
-        Configura eventos.
-    */
-
-    setupEvents();
-
-    setupMobileMenu();
-
-
-    /*
-        Renderização inicial.
-    */
-
-    renderVehicle();
-
-    updateSimulation();
-
-
-    /*
-        Estado inicial.
-    */
-
-    const vehicleSelect =
-        $("vehicleSelect") ||
-        $("vehicle");
-
-    if (vehicleSelect) {
-
-        if (
-            cars[
-                vehicleSelect.value
-            ]
-        ) {
-
-            state.vehicleId =
-                vehicleSelect.value;
-        } else {
-
-            vehicleSelect.value =
-                "gti";
-
-            state.vehicleId =
-                "gti";
-        }
-    }
-
-
-    const objectiveSelect =
-        $("objective");
-
-    if (objectiveSelect) {
-
-        if (
-            [
-                "economia",
-                "desempenho",
-                "esportivo"
-            ].includes(
-                objectiveSelect.value
-            )
-        ) {
-
-            state.objective =
-                objectiveSelect.value;
-        } else {
-
-            objectiveSelect.value =
-                "desempenho";
-        }
-    }
-
-
-    renderVehicle();
-
-    updateSimulation();
-
-
-    /*
-        Avisa que o sistema está pronto.
-    */
-
-    console.log(
-        "Simulador inicializado com sucesso."
-    );
-}
-
-
-/* ============================================================
-   37. EXPOSIÇÃO DE FUNÇÕES
-   Útil para testes e apresentação.
-============================================================ */
-
-window.SimuladorAutomotivo = {
-
-    state,
-
-    cars,
-
-    modifications,
-
-    initializeApp,
-
-    calculatePreparation,
-
-    calculateBudget,
-
-    calculateSafety,
-
-    calculateScores,
-
-    generateRecommendations,
-
-    generateAutomaticPreparation,
-
-    generatePDF,
-
-    printReport,
-
-    resetSimulation,
-
-    updateSimulation,
-
-    showToast
-};
-
-
-/* ============================================================
-   38. START
-============================================================ */
-
-if (
-    document.readyState ===
-    "loading"
-) {
-
-    document.addEventListener(
-        "DOMContentLoaded",
-        initializeApp
-    );
-
-} else {
-
-    initializeApp();
-}
+        // Expor funções globalmente para eventos de clique do HTML
+        window.switchTab = switchTab;
+        window.changeCar = changeCar;
+        window.toggleUpgrade = toggleUpgrade;
+        window.calculateBudget = calculateBudget;
+        window.addUpgradeFromBudget = addUpgradeFromBudget;
+        window.runSmartSetup = runSmartSetup;
+        window.exportReportPDF = exportReportPDF;
+        window.resetSimulation = resetSimulation;
+    </script>
+</body>
+</html>
